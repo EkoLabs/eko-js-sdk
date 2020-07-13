@@ -1,2 +1,2 @@
-# js-native-sdk
+# js-web-sdk
 A lightweight SDK that allows for easy integration of eko videos into webpages

@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+import axios from 'axios';
 
 class EkoPlayer {
     /**
@@ -7,7 +7,21 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     constructor(el) {
-        this._el = el;
+        if (!el) {
+            throw new Error('Constructor must get an element (or selector) as first argument.');
+        }
+        this._iframe = document.createElement('iframe');
+        this._iframe.frameBorder = 0;
+        this._iframe.width = '100%';
+        this._iframe.height = '100%';
+        this._iframe.id = 'ekoPlayer';
+        this._iframe.title = 'Eko Player';
+
+        let container = this.getContainer(el);
+        if (container) {
+            container.appendChild(this._iframe);
+        }
+
         this.exports = this.exportPublicAPI();
         return this.exports;
     }
@@ -33,7 +47,22 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     load(projectId, options) {
+        let env = '';
+        if (options && options.env) {
+            env = `${options.env}.`;
+        }
 
+        axios.get(`https://${env}eko.com/api/v1/projects/${projectId}`)
+            .then((response) => {
+                if (response.data) {
+                    let embedUrl = response.data.embedUrl;
+                    let projectUrl = this.buildUrl(embedUrl, options);
+                    this._iframe.setAttribute('src', projectUrl);
+                }
+            })
+            .catch((error) => {
+                throw error;
+            });
     }
 
     /**
@@ -61,6 +90,7 @@ class EkoPlayer {
      * @param {*} args - Any arguments that should be passed into the method. Serializable only.
      * @memberof EkoPlayer
      */
+    // eslint-disable-next-line no-unused-vars
     invoke(method, ...args) {
 
     }
@@ -76,6 +106,55 @@ class EkoPlayer {
             load: this.load.bind(this),
             invoke: this.invoke.bind(this)
         };
+    }
+
+    getContainer(el) {
+        let retVal = null;
+
+        if (!el) {
+            throw new Error('Constructor must get an element (or selector) as first argument.');
+        } else if (typeof el === 'string') {
+            // Otherwise, if el is a string (selector)
+            try {
+                retVal = document.querySelector(el);
+            } catch (e) { }
+
+            if (!retVal) {
+                throw new Error(`Could not successfully resolve selector: ${el}`);
+            }
+        } else {
+            // Otherwise, el is assumed to be the container <div> element itself.
+            retVal = el;
+        }
+
+        if (!retVal || typeof retVal.appendChild !== 'function') {
+            throw new Error(`Could not resolve container DOM element.`);
+        }
+
+        return retVal;
+    }
+
+    buildUrl(embedUrl, options) {
+        let params = (options && options.param) || { autoplay: true };
+        let hascover = options && options.cover !== undefined;
+        let events = (options && options.events) || [];
+
+        let projectUrl = `${embedUrl}?embedapi=1.0`;
+        Object.keys(params).forEach((key) => {
+            projectUrl = `${projectUrl}&${key}=${params[key]}`;
+        });
+        if (hascover) {
+            if (options.params.autoplay) {
+                if (!events.find(val => val === 'eko.playing')) {
+                    events.push('eko.playing');
+                }
+            } else if (!events.find(val => val === 'eko.canplay')) {
+                events.push('eko.canplay');
+            }
+        }
+        let eventList = events.join(',');
+        projectUrl = `${projectUrl}&events=${eventList}`;
+        return projectUrl;
     }
 }
 
