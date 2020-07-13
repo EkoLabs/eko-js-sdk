@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import copySetterGetterFromInstance from './utils/copySetterGetterFromInstance';
 class EkoPlayer {
     /**
      * Creates an instance of EkoPlayer.
@@ -21,9 +21,20 @@ class EkoPlayer {
         if (container) {
             container.appendChild(this._iframe);
         }
-
+        this.addEventListeners();
         this.exports = this.exportPublicAPI();
         return this.exports;
+    }
+
+    set onEvent(eventCallback) {
+        if (typeof eventCallback !== 'function') {
+            throw new Error(`onEvent must be a function. Received ${typeof eventCallback} instead.`);
+        }
+        this._eventListener = eventCallback;
+    }
+
+    get onEvent() {
+        return this._eventListener;
     }
 
     /**
@@ -71,7 +82,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     play() {
-
+        this.invoke('eko.play');
     }
 
     /**
@@ -80,7 +91,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     pause() {
-
+        this.invoke('eko.pause');
     }
 
     /**
@@ -92,7 +103,14 @@ class EkoPlayer {
      */
     // eslint-disable-next-line no-unused-vars
     invoke(method, ...args) {
-
+        if (typeof method !== 'string') {
+            throw new Error('Expected required argument method of type string');
+        }
+        const action = {
+            type: method,
+            args: args
+        };
+        this._iframe.contentWindow.postMessage(action, '*');
     }
 
     ///////////////////////////
@@ -100,19 +118,21 @@ class EkoPlayer {
     //////////////////////////
 
     exportPublicAPI() {
-        return {
+        let exportObj = {
             play: this.play.bind(this),
             pause: this.pause.bind(this),
             load: this.load.bind(this),
             invoke: this.invoke.bind(this)
         };
+        copySetterGetterFromInstance(this, exportObj, 'onEvent');
+        return exportObj;
     }
 
     getContainer(el) {
         let retVal = null;
 
         if (!el) {
-            throw new Error('Constructor must get an element (or selector) as first argument.');
+            throw new Error('Expecting an element (or selector) as first argument.');
         } else if (typeof el === 'string') {
             // Otherwise, if el is a string (selector)
             try {
@@ -155,6 +175,24 @@ class EkoPlayer {
         let eventList = events.join(',');
         projectUrl = `${projectUrl}&events=${eventList}`;
         return projectUrl;
+    }
+
+    onEkoEventFired(event) {
+        if (!/https?:\/\/(.*?\.)?eko.com/.test(event.origin)) {
+            return;
+        }
+        const msg = event.data;
+        if (event.data.type && this._eventListener) {
+            this._eventListener(msg);
+        }
+    }
+
+    addEventListeners() {
+        window.addEventListener('message', this.onEkoEventFired.bind(this));
+    }
+
+    removeEventListeners() {
+        window.removeEventListener('message', this.onEkoEventFired);
     }
 }
 
