@@ -17,6 +17,8 @@ class EkoPlayer {
         this._iframe.id = 'ekoPlayer';
         this._iframe.title = 'Eko Player';
 
+        this._cover = '';
+        this._autoplay = true;
         let container = this.getContainer(el);
         if (container) {
             container.appendChild(this._iframe);
@@ -55,6 +57,8 @@ class EkoPlayer {
      * @param {object} options.params - A list of embed params that will affect the delivery. Default includes {autoplay: true}.
      * @param {string[]} options.events - A list of events that should be forwarded to the app.
      * @param {Element|string} options.cover - An element or the query selector string for a loading cover. When loading happens a “eko-player-loading” class will be added to the element. When loading finishes, the “eko-player-loading” class will be removed. If no cover is provided, the default eko loading cover will be shown.
+     * @param {string} options.frameTitle -  The title for the iframe.
+     * @returns Promise that will fail if the project id is invalid
      * @memberof EkoPlayer
      */
     load(projectId, options) {
@@ -62,17 +66,33 @@ class EkoPlayer {
         if (options && options.env) {
             env = `${options.env}.`;
         }
+        if (options && options.cover) {
+            this._cover = this.getContainer(options.cover);
+        }
+        if (options && typeof options.frameTitle === 'string') {
+            this._iframe.title = options.frameTitle;
+        }
 
-        axios.get(`https://${env}eko.com/api/v1/projects/${projectId}`)
+        if (options && options.params && typeof options.params.autoplay === 'boolean') {
+            this._autoplay = options.params.autoplay;
+        }
+
+        return axios.get(`https://${env}eko.com/api/v1/projects/${projectId}`)
             .then((response) => {
                 if (response.data) {
                     let embedUrl = response.data.embedUrl;
                     let projectUrl = this.buildUrl(embedUrl, options);
+                    if (options && options.cover) {
+                        this._cover.classList.add('eko-player-loading');
+                    }
                     this._iframe.setAttribute('src', projectUrl);
+                    if (response.data.metadata) {
+                        this._eventListener({
+                            type: 'metadata',
+                            data: response.data.metadata
+                        });
+                    }
                 }
-            })
-            .catch((error) => {
-                throw error;
             });
     }
 
@@ -101,7 +121,6 @@ class EkoPlayer {
      * @param {*} args - Any arguments that should be passed into the method. Serializable only.
      * @memberof EkoPlayer
      */
-    // eslint-disable-next-line no-unused-vars
     invoke(method, ...args) {
         if (typeof method !== 'string') {
             throw new Error('Expected required argument method of type string');
@@ -148,14 +167,14 @@ class EkoPlayer {
         }
 
         if (!retVal || typeof retVal.appendChild !== 'function') {
-            throw new Error(`Could not resolve container DOM element.`);
+            throw new Error(`Could not resolve DOM element.`);
         }
 
         return retVal;
     }
 
     buildUrl(embedUrl, options) {
-        let params = (options && options.param) || { autoplay: true };
+        let params = (options && options.params) || { autoplay: true };
         let hascover = options && options.cover !== undefined;
         let events = (options && options.events) || [];
 
@@ -181,9 +200,18 @@ class EkoPlayer {
         if (!/https?:\/\/(.*?\.)?eko.com/.test(event.origin)) {
             return;
         }
+
         const msg = event.data;
-        if (event.data.type && this._eventListener) {
-            this._eventListener(msg);
+        if (msg.type) {
+            const shouldRemoveCover = this._cover &&
+            ((msg.type === 'eko.playing' && this._autoplay) || (msg.type === 'eko.canplay' && !this._autoplay));
+            if (shouldRemoveCover) {
+                this._cover.classList.remove('eko-player-loading');
+            }
+
+            if (msg.type && this._eventListener) {
+                this._eventListener(msg);
+            }
         }
     }
 
