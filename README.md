@@ -17,6 +17,12 @@ The eko player triggers a number of events. The app can listen to these events b
 
 
 ### Methods
+#### EkoPlayer(el)
+Creates an instance of an EkoPlayer.
+| Param           | Type           | Description  |
+| :-------------: |:--------------:| :------------|
+| el | `Element|String` | The container element to be used by the player, or a DOM selector string for the container element. |
+
 #### load(projectId, options) &rarr; Promise
 Will load and display an eko project. The EkoPlayerView will display the loading animation while it prepares the project for playback. Returns a promise that will fail if the project id is invalid.
 
