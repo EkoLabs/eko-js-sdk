@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Page with Eko Native SDK Loaded</title>
+    <style>
+        .eko-player {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+        }
+        .eko-cover {
+            background-color: blue;
+            opacity: 0;
+        }
+        .eko-player-loading {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <input type="text" id="projectid" name="id" placeholder="Project ID"><br><br>
+        <input type="text" id="events" name="events" placeholder="Custom Events"><br><br>
+        <input type="text" id="params" name="params" placeholder="Params"><br><br>
+        <input type="text" id="environment" name="environment" placeholder="Environment"><br><br>
+        <input type="text" id="frameTitle" name="frameTitle" placeholder="Frame Title"><br><br>
+        <input type="checkbox" id="handleURLS" name="handleURLS">
+        <label for="handleURLS">Handle URLs </label>
+        <input type="checkbox" id="handleShare" name="handleShare">
+        <label for="handleShare">Handle Share </label>
+        <input type="checkbox" id="customCover" name="customCover">
+        <label for="customCover">Custom Cover </label><br><br>
+        <button onclick="load()">Load</button><br><br>
+        <button onclick="playVideo()">Play</button>
+        <button onclick="pauseVideo()">Pause</button> <br><br>
+    </div>
+    <div>
+        <div id="ekoLoadingCover" class="eko-cover eko-player">
+        </div>
+        <div id="ekoContainer" class="eko-player">
+        </div>
+    </div>
+    <!-- `/` is root of dist; we're being served as a static file in /test/integration/public -->
+    <script src="/EkoPlayer.js" async></script>
+    <script>
+        let ekoPlayer;
+        window.onload = function() {
+            ekoPlayer = new EkoPlayer('#ekoContainer');
+            ekoPlayer.onEvent = (msg) => {
+                console.log(msg);
+            };
+        }
+        playVideo = function() {
+            ekoPlayer.play();
+        }
+
+        pauseVideo = function() {
+            ekoPlayer.pause();
+        }
+        load = function() {
+            let projid = document.getElementById('projectid').value;
+            let events = document.getElementById('events').value;
+            let params = document.getElementById('params').value;
+            let environment = document.getElementById('environment').value;
+            let title = document.getElementById('frameTitle').value;
+            let handleUrls = document.getElementById('handleURLS').checked;
+            let handleShare = document.getElementById('handleShare').checked;
+            let customCover = document.getElementById('customCover').checked;
+
+            let eventArr = events.replace(' ', '').split(',');
+            let paramArr = params.replace(' ', '').split(',');
+            let paramsDict = paramArr.reduce((map, obj) => {
+                let pair = obj.split('=');
+                map[pair[0]] = pair[1];
+                return map;
+            }, {});
+            let ekooptions = {
+                params: paramsDict,
+                events: eventArr,
+                env: environment,
+                frameTitle: title
+            };
+            if (customCover) {
+                ekooptions.cover = '#ekoLoadingCover';
+            }
+            ekoPlayer.load(projid, ekooptions).catch((e) => {
+                console.log(e);
+            });
+        }
+        
+    </script>
+</body>
+
+</html>
