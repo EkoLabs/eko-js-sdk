@@ -27,10 +27,6 @@
         <input type="text" id="params" name="params" placeholder="Params"><br><br>
         <input type="text" id="environment" name="environment" placeholder="Environment"><br><br>
         <input type="text" id="frameTitle" name="frameTitle" placeholder="Frame Title"><br><br>
-        <input type="checkbox" id="handleURLS" name="handleURLS">
-        <label for="handleURLS">Handle URLs </label>
-        <input type="checkbox" id="handleShare" name="handleShare">
-        <label for="handleShare">Handle Share </label>
         <input type="checkbox" id="customCover" name="customCover">
         <label for="customCover">Custom Cover </label><br><br>
         <button onclick="load()">Load</button><br><br>
@@ -66,8 +62,6 @@
             let params = document.getElementById('params').value;
             let environment = document.getElementById('environment').value;
             let title = document.getElementById('frameTitle').value;
-            let handleUrls = document.getElementById('handleURLS').checked;
-            let handleShare = document.getElementById('handleShare').checked;
             let customCover = document.getElementById('customCover').checked;
 
             let eventArr = events.replace(' ', '').split(',');
