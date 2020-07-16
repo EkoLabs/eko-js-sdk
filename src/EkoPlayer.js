@@ -46,6 +46,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     static isSupported() {
+        // TODO: implement this
         return true;
     }
 
@@ -190,6 +191,13 @@ class EkoPlayer {
             } else if (!events.find(val => val === 'eko.canplay')) {
                 events.push('eko.canplay');
             }
+        }
+
+        // If the events array includes share.intent, then the iframe should not handle share functionality
+        // Include `sharemode=proxy` into the project url so that the share.intent event gets forwarded from
+        // the share plugin.
+        if (events.includes('share.intent')) {
+            projectUrl = `${projectUrl}&sharemode=proxy`;
         }
         let eventList = events.join(',');
         projectUrl = `${projectUrl}&events=${eventList}`;
