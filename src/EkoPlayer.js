@@ -1,5 +1,17 @@
 import axios from 'axios';
+import merge from 'lodash.merge';
 import copySetterGetterFromInstance from './utils/copySetterGetterFromInstance';
+import utils from './utils/utils';
+
+let instanceCount = 0;
+let DEFAULT_OPTIONS = {
+    env: '',
+    frameTitle: 'Eko Player',
+    params: {
+        autoplay: true
+    },
+    events: []
+};
 class EkoPlayer {
     /**
      * Creates an instance of EkoPlayer.
@@ -10,19 +22,19 @@ class EkoPlayer {
         if (!el) {
             throw new Error('Constructor must get an element (or selector) as first argument.');
         }
-        this._iframe = document.createElement('iframe');
-        this._iframe.frameBorder = 0;
-        this._iframe.width = '100%';
-        this._iframe.height = '100%';
-        this._iframe.id = 'ekoPlayer';
-        this._iframe.title = 'Eko Player';
+        this._iframe = utils.buildIFrame(`ekoframe-${++instanceCount}`);
 
         this._cover = '';
         this._autoplay = true;
-        let container = this.getContainer(el);
-        if (container) {
-            container.appendChild(this._iframe);
+        try {
+            let container = utils.getContainer(el);
+            if (container) {
+                container.appendChild(this._iframe);
+            }
+        } catch (e) {
+            throw e;
         }
+        this.onEkoEventFired = this.onEkoEventFired.bind(this);
         this.addEventListeners();
         this.exports = this.exportPublicAPI();
         return this.exports;
@@ -63,37 +75,48 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     load(projectId, options) {
-        let env = '';
-        if (options && options.env) {
-            env = `${options.env}.`;
+        options = merge({}, DEFAULT_OPTIONS, options);
+
+        if (options.cover) {
+            try {
+                this._cover = utils.getContainer(options.cover);
+            } catch (e) {
+                throw e;
+            }
         }
-        if (options && options.cover) {
-            this._cover = this.getContainer(options.cover);
-        }
-        if (options && typeof options.frameTitle === 'string') {
-            this._iframe.title = options.frameTitle;
+        if (typeof options.frameTitle === 'string') {
+            this._iframe.setAttribute('title', options.frameTitle);
+        } else {
+            throw new Error(`Received type ${typeof options.frameTitle}. Expected string.`);
         }
 
-        if (options && options.params && typeof options.params.autoplay === 'boolean') {
+        if (typeof options.params.autoplay === 'boolean') {
             this._autoplay = options.params.autoplay;
+        } else {
+            throw new Error(`Received type ${typeof options.params.autoplay}. Expected boolean.`);
         }
 
-        return axios.get(`https://${env}eko.com/api/v1/projects/${projectId}`)
+        return axios.get(`https://${options.env}eko.com/api/v1/projects/${projectId}`)
             .then((response) => {
-                if (response.data) {
-                    let embedUrl = response.data.embedUrl;
-                    let projectUrl = this.buildUrl(embedUrl, options);
-                    if (options && options.cover) {
-                        this._cover.classList.add('eko-player-loading');
-                    }
-                    this._iframe.setAttribute('src', projectUrl);
-                    if (response.data.metadata) {
-                        this._eventListener({
-                            type: 'metadata',
-                            data: response.data.metadata
-                        });
-                    }
+                if (!response.data) {
+                    throw new Error('Response is missing required data');
                 }
+                let embedUrl = response.data.embedUrl;
+                options.params.embedid = this._iframe.id;
+                let projectUrl = utils.buildUrl(embedUrl, options);
+                this._iframe.setAttribute('src', projectUrl);
+                if (options.cover) {
+                    this._cover.classList.add('eko-player-loading');
+                }
+                if (response.data.metadata) {
+                    this._eventListener({
+                        type: 'metadata',
+                        data: response.data.metadata
+                    });
+                }
+            })
+            .catch((e) => {
+                throw e;
             });
     }
 
@@ -148,83 +171,30 @@ class EkoPlayer {
         return exportObj;
     }
 
-    getContainer(el) {
-        let retVal = null;
-
-        if (!el) {
-            throw new Error('Expecting an element (or selector) as first argument.');
-        } else if (typeof el === 'string') {
-            // Otherwise, if el is a string (selector)
-            try {
-                retVal = document.querySelector(el);
-            } catch (e) { }
-
-            if (!retVal) {
-                throw new Error(`Could not successfully resolve selector: ${el}`);
-            }
-        } else {
-            // Otherwise, el is assumed to be the container <div> element itself.
-            retVal = el;
-        }
-
-        if (!retVal || typeof retVal.appendChild !== 'function') {
-            throw new Error(`Could not resolve DOM element.`);
-        }
-
-        return retVal;
-    }
-
-    buildUrl(embedUrl, options) {
-        let params = (options && options.params) || { autoplay: true };
-        let hascover = options && options.cover !== undefined;
-        let events = (options && options.events) || [];
-
-        let projectUrl = `${embedUrl}?embedapi=1.0`;
-        Object.keys(params).forEach((key) => {
-            projectUrl = `${projectUrl}&${key}=${params[key]}`;
-        });
-        if (hascover) {
-            if (options.params.autoplay) {
-                if (!events.find(val => val === 'eko.playing')) {
-                    events.push('eko.playing');
-                }
-            } else if (!events.find(val => val === 'eko.canplay')) {
-                events.push('eko.canplay');
-            }
-        }
-
-        // If the events array includes share.intent, then the iframe should not handle share functionality
-        // Include `sharemode=proxy` into the project url so that the share.intent event gets forwarded from
-        // the share plugin.
-        if (events.includes('share.intent')) {
-            projectUrl = `${projectUrl}&sharemode=proxy`;
-        }
-        let eventList = events.join(',');
-        projectUrl = `${projectUrl}&events=${eventList}`;
-        return projectUrl;
-    }
-
     onEkoEventFired(event) {
-        if (!/https?:\/\/(.*?\.)?eko.com/.test(event.origin)) {
+        if (!utils.isEkoDomain(event.origin)) {
             return;
         }
 
         const msg = event.data;
-        if (msg.type) {
+        if (msg.type && msg.embedid === this._iframe.id) {
             const shouldRemoveCover = this._cover &&
-            ((msg.type === 'eko.playing' && this._autoplay) || (msg.type === 'eko.canplay' && !this._autoplay));
+                (
+                    (msg.type === 'eko.playing' && this._autoplay) ||
+                    (msg.type === 'eko.canplay' && !this._autoplay)
+                );
             if (shouldRemoveCover) {
                 this._cover.classList.remove('eko-player-loading');
             }
 
-            if (msg.type && this._eventListener) {
+            if (this._eventListener) {
                 this._eventListener(msg);
             }
         }
     }
 
     addEventListeners() {
-        window.addEventListener('message', this.onEkoEventFired.bind(this));
+        window.addEventListener('message', this.onEkoEventFired);
     }
 
     removeEventListeners() {
