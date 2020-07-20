@@ -3,7 +3,7 @@ A lightweight SDK that allows for easy integration of eko videos into webpages
 
 # API
 ## EkoPlayer
-Initialize an instance of the `EkoPlayer` to play an eko video.
+Initialize an instance of the `EkoPlayer` to play an [eko](https://eko.com) video.
 ### Properties
 #### onEvent : `Function`
 The eko player triggers a number of events. The app can listen to these events by providing the event name in the load call. This function will be called whenever an event passed in to `load()` is triggered.
@@ -28,7 +28,7 @@ Will load and display an eko project. The EkoPlayerView will display the loading
 
 | Param           | Type           | Description  |
 | :-------------: |:--------------:| :------------|
-| projectId | `String` | The id of a project to display |
+| projectId | `String` | The id of a project to load and display. |
 | options | `Object` | Options for project delivery. |
 | options.params | `Object` | A dictionary of embed params that will affect the delivery. Default includes `{autoplay: true}`.|
 | options.events | `String[]` | A list of events that should be forwarded. |
@@ -55,6 +55,6 @@ Only added if a cover exists and `autoplay=true`
 
 # URLs and Sharing
 If you wish to handle opening urls or social sharing yourself, simple add the following events to the options in the load call:
-* urls.openinparent
+* urls.intent
 * share.intent
 
