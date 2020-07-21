@@ -80,9 +80,14 @@
             if (customCover) {
                 ekooptions.cover = '#ekoLoadingCover';
             }
-            ekoPlayer.load(projid, ekooptions).catch((e) => {
+            ekoPlayer.getProjectInfo(projid, {env: environment}).then((response) => {
+                console.log('Received the project info:');
+                console.log(response);
+            }).catch((e) => {
+                console.log('Project info errored out');
                 console.log(e);
-            });
+            })
+            ekoPlayer.load(projid, ekooptions);
         }
         
     </script>
