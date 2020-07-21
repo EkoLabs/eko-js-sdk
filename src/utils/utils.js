@@ -1,3 +1,5 @@
+import merge from 'lodash.merge';
+
 function addQueryStringParams(uri, queryParams) {
     for (var key in queryParams) {
         // eslint-disable-next-line no-negated-condition
@@ -8,19 +10,49 @@ function addQueryStringParams(uri, queryParams) {
     return uri;
 }
 
-function buildUrl(embedUrl, options) {
+function extractQueryParams(url, params) {
+    let urlcomponents = url.split('?');
+    if (urlcomponents.length < 2) {
+        return;
+    }
+    let queryparams = urlcomponents[1];
+    let finalObj = {};
+    let pairs = queryparams.split('&');
+    pairs.reduce(function(map, pair) {
+        let keyVal = pair.split('=');
+
+        // Params can be strings or regex. Check if there are any matches
+        let matches = params.filter((val) => {
+            return (keyVal[0].match(val));
+        });
+        if (Array.isArray(keyVal) && keyVal.length === 2 && matches.length !== 0) {
+            map[keyVal[0]] = keyVal[1];
+        }
+        return map;
+    }, finalObj);
+    return finalObj;
+}
+
+function buildUrl(embedUrl, embedOptions, pageUrl, pageParams) {
     if (!embedUrl) {
         throw new Error('Missing required param embedUrl');
     }
-    if (!options) {
-        throw new Error('Missing required param options');
+    if (!embedOptions) {
+        throw new Error('Missing required param embedOptions');
     }
-    let params = Object.assign({}, options.params);
+    if (pageParams && !pageUrl) {
+        throw new Error('Provided page params but no page url');
+    }
+    if (pageParams && !Array.isArray(pageParams)) {
+        throw new Error('Pageparams must be an array');
+    }
+    let params = pageParams ? Object.assign({}, extractQueryParams(pageUrl, pageParams)) : {};
+    params = merge(params, embedOptions.params);
     params.embedapi = '1.0';
-    let hascover = options.cover !== undefined;
-    let events = options.events || [];
+    let hascover = embedOptions.cover !== undefined;
+    let events = embedOptions.events || [];
     if (hascover) {
-        if (options.params.autoplay) {
+        if (embedOptions.params.autoplay) {
             if (!events.find(val => val === 'eko.playing')) {
                 events.push('eko.playing');
             }
@@ -95,4 +127,5 @@ export default {
     buildIFrame: buildIFrame,
     isEkoDomain: isEkoDomain,
     getContainer: getContainer,
+    extractQueryParams: extractQueryParams
 };

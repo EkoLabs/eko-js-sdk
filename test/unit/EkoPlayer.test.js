@@ -43,6 +43,7 @@ describe('ekoplayer tests', () => {
             expect(iframe.src.includes('https://eko.com/v/AWLLK1')).toBe(true);
         });
     });
+
     describe('invoke tests', () => {
         it('throws an error when the method is not a string', () => {
             jest.spyOn(utils, 'getContainer').mockReturnValue({ appendChild: () => {} });

@@ -32,7 +32,7 @@ describe('utils tests', () => {
             expect(() => utils.buildUrl()).toThrow('Missing required param embedUrl');
         });
         it('throws an error if options are missing', () => {
-            expect(() => utils.buildUrl('https://eko.com/v/AWLLK1')).toThrow('Missing required param options');
+            expect(() => utils.buildUrl('https://eko.com/v/AWLLK1')).toThrow('Missing required param embedOptions');
         });
         it('includes embedapi in url', () => {
             let url = utils.buildUrl('https://eko.com/v/AWLLK1', { params: { debug: true } });
@@ -79,6 +79,25 @@ describe('utils tests', () => {
             let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
             expect(url.includes('events=urls.intent,playing,nodestart')).toBe(true);
         });
+        it('includes the page url params provided', () => {
+            let pageUrl = 'https://abcdef.com?debug=true&myappid=abcdef';
+            let pageParms = ['debug', 'myappid'];
+            let url = utils.buildUrl('https://eko.com/v/AWLLK1', {}, pageUrl, pageParms);
+            expect(url.includes('debug=true')).toBe(true);
+            expect(url.includes('myappid=abcdef')).toBe(true);
+        });
+        it('embed options has priority over page params', () => {
+            let pageUrl = 'https://abcdef.com?debug=true&myappid=abcdef';
+            let pageParms = ['debug', 'myappid'];
+            let options = {
+                params: {
+                    debug: false
+                }
+            };
+            let url = utils.buildUrl('https://eko.com/v/AWLLK1', options, pageUrl, pageParms);
+            expect(url.includes('debug=false')).toBe(true);
+            expect(url.includes('myappid=abcdef')).toBe(true);
+        });
     });
     describe('eko domain tests', () => {
         it('returns false if the eko domain is not in the origin', () => {
@@ -100,6 +119,29 @@ describe('utils tests', () => {
         it('throws an error if a non element is passed in', () => {
             expect(() => utils.getContainer({params: true}))
                 .toThrow('Could not resolve DOM element.');
+        });
+    });
+    describe('query param extraction tests', () => {
+        it('does not include params that are not in the approved list', () => {
+            let params = utils.extractQueryParams('https://abcdef.com?debug=true&utm=someid&myappid=abc', ['debug', 'utm']);
+            expect(params.debug).toBe('true');
+            expect(params.utm).toBe('someid');
+            expect(params.myappid).toBe(undefined);
+        });
+        it('returns an empty object if there are no params from the approved list', () => {
+            let params = utils.extractQueryParams('https://abcdef.com?debug=true&utm=someid', ['myappid', 'test']);
+            expect(params).toEqual({});
+        });
+        it('includes params from the approved list', () => {
+            let params = utils.extractQueryParams('https://abcdef.com?debug=true&utm=someid', ['debug', 'test']);
+            expect(params.debug).toEqual('true');
+            expect(params.utm).toEqual(undefined);
+        });
+        it('handles regex as elements in the param array', () => {
+            let params = utils.extractQueryParams('https://abcdef.com?debug=true&utm_marketing=someid&utm_id=anotherid', ['debug', /utm_*/]);
+            expect(params.debug).toEqual('true');
+            expect(params.utm_id).toEqual('anotherid');
+            expect(params.utm_marketing).toEqual('someid');
         });
     });
 });

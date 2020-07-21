@@ -12,6 +12,7 @@ let DEFAULT_OPTIONS = {
     },
     events: []
 };
+let DEFAULT_QUERY_PARAMS = ['autoplay', 'debug', /utm_*/, 'headnodeid'];
 class EkoPlayer {
     /**
      * Creates an instance of EkoPlayer.
@@ -71,6 +72,7 @@ class EkoPlayer {
      * @param {string[]} options.events - A list of events that should be forwarded to the app.
      * @param {Element|string} options.cover - An element or the query selector string for a loading cover. When loading happens a “eko-player-loading” class will be added to the element. When loading finishes, the “eko-player-loading” class will be removed. If no cover is provided, the default eko loading cover will be shown.
      * @param {string} options.frameTitle -  The title for the iframe.
+     * @param {array} options.pageParams - Any query params from the page url that should be forwarded to the iframe. Can supply regex and strings. By default, the following query params will automatically be forwarded: autoplay, debug, utm_*, headnodeid
      * @returns Promise that will fail if the project id is invalid
      * @memberof EkoPlayer
      */
@@ -95,9 +97,10 @@ class EkoPlayer {
         } else {
             throw new Error(`Received type ${typeof options.params.autoplay}. Expected boolean.`);
         }
-        let embedUrl = `https://eko.com/v/${projectId}/embed`;
         options.params.embedid = this._iframe.id;
-        let projectUrl = utils.buildUrl(embedUrl, options);
+        let pageparams = Array.isArray(options.pageParams) ? options.pageParams : DEFAULT_QUERY_PARAMS;
+        let embedUrl = `https://eko.com/v/${projectId}/embed`;
+        let projectUrl = utils.buildUrl(embedUrl, options, window.location.toString(), pageparams);
         this._iframe.setAttribute('src', projectUrl);
         if (options.cover) {
             this._cover.classList.add('eko-player-loading');
