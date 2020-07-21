@@ -95,29 +95,13 @@ class EkoPlayer {
         } else {
             throw new Error(`Received type ${typeof options.params.autoplay}. Expected boolean.`);
         }
-
-        return axios.get(`https://${options.env}eko.com/api/v1/projects/${projectId}`)
-            .then((response) => {
-                if (!response.data) {
-                    throw new Error('Response is missing required data');
-                }
-                let embedUrl = response.data.embedUrl;
-                options.params.embedid = this._iframe.id;
-                let projectUrl = utils.buildUrl(embedUrl, options);
-                this._iframe.setAttribute('src', projectUrl);
-                if (options.cover) {
-                    this._cover.classList.add('eko-player-loading');
-                }
-                if (response.data.metadata) {
-                    this._eventListener({
-                        type: 'metadata',
-                        data: response.data.metadata
-                    });
-                }
-            })
-            .catch((e) => {
-                throw e;
-            });
+        let embedUrl = `https://eko.com/v/${projectId}/embed`;
+        options.params.embedid = this._iframe.id;
+        let projectUrl = utils.buildUrl(embedUrl, options);
+        this._iframe.setAttribute('src', projectUrl);
+        if (options.cover) {
+            this._cover.classList.add('eko-player-loading');
+        }
     }
 
     /**
@@ -147,13 +131,35 @@ class EkoPlayer {
      */
     invoke(method, ...args) {
         if (typeof method !== 'string') {
-            throw new Error('Expected required argument method of type string');
+            throw new Error('Expected required argument method to have type string');
         }
         const action = {
             type: method,
             args: args
         };
         this._iframe.contentWindow.postMessage(action, '*');
+    }
+
+    /**
+     * Retrieves the project info from the eko zuri APIs
+     *
+     * @param {string} projectId - project id to get info of
+     * @param {object} options - change the env if necessary
+     * @returns
+     * @memberof EkoPlayer
+     */
+    getProjectInfo(projectId, options) {
+        let env = (options && options.env) || '';
+        return axios.get(`https://${env}api.eko.com/v1/projects/${projectId}`)
+            .then((response) => {
+                if (!response.data) {
+                    throw new Error('Response is missing required data');
+                }
+                return response.data;
+            })
+            .catch((e) => {
+                throw e;
+            });
     }
 
     ///////////////////////////
@@ -165,7 +171,8 @@ class EkoPlayer {
             play: this.play.bind(this),
             pause: this.pause.bind(this),
             load: this.load.bind(this),
-            invoke: this.invoke.bind(this)
+            invoke: this.invoke.bind(this),
+            getProjectInfo: this.getProjectInfo.bind(this)
         };
         copySetterGetterFromInstance(this, exportObj, 'onEvent');
         return exportObj;
