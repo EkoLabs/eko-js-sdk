@@ -45,9 +45,6 @@
         let ekoPlayer;
         window.onload = function() {
             ekoPlayer = new EkoPlayer('#ekoContainer');
-            ekoPlayer.onEvent = (msg) => {
-                console.log(msg);
-            };
         }
         playVideo = function() {
             ekoPlayer.play();
@@ -86,7 +83,13 @@
             }).catch((e) => {
                 console.log('Project info errored out');
                 console.log(e);
-            })
+            });
+            eventArr.forEach(element => {
+                console.log(element);
+                ekoPlayer.on(`eko.${element}`, (player, msg) => {
+                    console.log(msg);
+                });
+            });
             ekoPlayer.load(projid, ekooptions);
         }
         

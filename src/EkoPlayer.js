@@ -2,6 +2,7 @@ import axios from 'axios';
 import merge from 'lodash.merge';
 import copySetterGetterFromInstance from './utils/copySetterGetterFromInstance';
 import utils from './utils/utils';
+import EventEmitter from 'eventemitter3';
 
 let instanceCount = 0;
 let DEFAULT_OPTIONS = {
@@ -24,7 +25,7 @@ class EkoPlayer {
             throw new Error('Constructor must get an element (or selector) as first argument.');
         }
         this._iframe = utils.buildIFrame(`ekoframe-${++instanceCount}`);
-
+        this._eventEmitter = new EventEmitter();
         this._cover = '';
         this._autoplay = true;
         try {
@@ -39,17 +40,6 @@ class EkoPlayer {
         this.addEventListeners();
         this.exports = this.exportPublicAPI();
         return this.exports;
-    }
-
-    set onEvent(eventCallback) {
-        if (typeof eventCallback !== 'function') {
-            throw new Error(`onEvent must be a function. Received ${typeof eventCallback} instead.`);
-        }
-        this._eventListener = eventCallback;
-    }
-
-    get onEvent() {
-        return this._eventListener;
     }
 
     /**
@@ -165,6 +155,43 @@ class EkoPlayer {
             });
     }
 
+    /**
+     * Event emitter function that will let a module register a callback for a specified event issued from
+     * the EkoPlayer.
+     *
+     * @param {String} eventName
+     * @param {function} callback
+     * @memberof EkoPlayer
+     */
+    on(eventName, callback) {
+        this._eventEmitter.on(eventName, callback);
+    }
+
+    /**
+     * Event emitter function that will let a module remove a callback for a specified event issued from
+     * the EkoPlayer.
+     *
+     * @param {String} eventName
+     * @param {function} callback
+     * @memberof EkoPlayer
+     */
+    off(eventName, callback) {
+        this._eventEmitter.off(eventName, callback);
+    }
+
+    /**
+     * Event emitter function that will let a module register a callback for a specified event
+     * from the EkoPlayer. The callback will only be called once, while the event may
+     * be emitted more than once.
+     *
+     * @param {String} eventName
+     * @param {function} callback
+     * @memberof EkoPlayer
+     */
+    once(eventName, callback) {
+        this._eventEmitter.once(eventName, callback);
+    }
+
     ///////////////////////////
     // PRIVATE FUNCTIONS
     //////////////////////////
@@ -175,10 +202,21 @@ class EkoPlayer {
             pause: this.pause.bind(this),
             load: this.load.bind(this),
             invoke: this.invoke.bind(this),
-            getProjectInfo: this.getProjectInfo.bind(this)
+            getProjectInfo: this.getProjectInfo.bind(this),
+            on: this.on.bind(this),
+            once: this.once.bind(this),
+            off: this.off.bind(this)
         };
         copySetterGetterFromInstance(this, exportObj, 'onEvent');
         return exportObj;
+    }
+
+    /*
+     * Private function. Will emit an event and pass the ekoplayer instance
+     * as one of the arguments, along with any other args specified.
+     */
+    trigger(eventName, ...args) {
+        this._eventEmitter.emit(eventName, this.exports, ...args);
     }
 
     onEkoEventFired(event) {
@@ -187,7 +225,7 @@ class EkoPlayer {
         }
 
         const msg = event.data;
-        if (msg.type && msg.embedid === this._iframe.id) {
+        if (msg.type && msg.embedId === this._iframe.id) {
             const shouldRemoveCover = this._cover &&
                 (
                     (msg.type === 'eko.playing' && this._autoplay) ||
@@ -196,10 +234,7 @@ class EkoPlayer {
             if (shouldRemoveCover) {
                 this._cover.classList.remove('eko-player-loading');
             }
-
-            if (this._eventListener) {
-                this._eventListener(msg);
-            }
+            this.trigger(msg.type, msg);
         }
     }
 

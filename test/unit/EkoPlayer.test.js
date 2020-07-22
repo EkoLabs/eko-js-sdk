@@ -81,19 +81,19 @@ describe('ekoplayer tests', () => {
         });
     });
     describe('eventforwarding tests', () => {
-        it('event gets forwarded to the onevent callback', (done) => {
+        it('event gets forwarded on "on"', (done) => {
             jest.spyOn(utils, 'getContainer').mockReturnValue({ appendChild: () => {} });
             jest.spyOn(utils, 'isEkoDomain').mockReturnValue(true);
             let iframe = document.createElement('iframe');
             jest.spyOn(utils, 'buildIFrame').mockReturnValue(iframe);
             let ekoplayer = new EkoPlayer('testelement');
-            ekoplayer.onEvent = (msg) => {
+            ekoplayer.on('eko.canplay', (ep, msg) => {
                 expect(msg.type).toEqual('eko.canplay');
                 done();
-            };
+            });
             window.postMessage({
                 type: 'eko.canplay',
-                embedid: iframe.id
+                embedId: iframe.id
             }, '*');
         });
     });

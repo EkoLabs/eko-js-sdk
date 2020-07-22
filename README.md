@@ -4,17 +4,6 @@ A lightweight SDK that allows for easy integration of eko videos into webpages
 # API
 ## EkoPlayer
 Initialize an instance of the `EkoPlayer` to play an [eko](https://eko.com) video.
-### Properties
-#### onEvent : `Function`
-The eko player triggers a number of events. The app can listen to these events by providing the event name in the load call. This function will be called whenever an event passed in to `load()` is triggered.
-| Param           | Type           | Description  |
-| :-------------: |:--------------:| :------------|
-| msg | `Object` | The event object from the player. |
-| msg.type | `String` | The name of the event. |
-| msg.embedApiVersion | `String` | API Version |
-| msg.embedId | `String` | iframe ID |
-| msg.args | `[]` | An array of the params sent with the event. |
-
 
 ### Methods
 #### EkoPlayer(el)
@@ -46,6 +35,19 @@ Will call any player function defined on the developer site. Can also be used to
 | :-------------: |:--------------:| :------------|
 | method | `String` | The player method to call. |
 | args | `Any` | Any arguments that should be passed into the method (must be serializable to json) |
+
+#### on(eventname, callbackFn)
+The eko player triggers a number of events. The app can listen to these events by providing the event name in the load call. The events will be structured like below:
+| Param           | Type           | Description  |
+| :-------------: |:--------------:| :------------|
+| msg | `Object` | The event object from the player. |
+| msg.type | `String` | The name of the event. |
+| msg.embedApiVersion | `String` | API Version |
+| msg.embedId | `String` | iframe ID |
+| msg.args | `[]` | An array of the params sent with the event. |
+
+#### off(eventname, callbackFn)
+#### once(eventname, callbackFn)
 
 # Default Player Events
 #### eko.canplay
