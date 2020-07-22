@@ -78,7 +78,7 @@ function buildUrl(embedUrl, embedOptions, pageUrl, pageParams) {
 }
 
 function isEkoDomain(domain) {
-    return (/https?:\/\/(.*?\.)?eko.com/.test(domain));
+    return /https?:\/\/(.*?\.)?eko.com/.test(domain);
 }
 
 function getContainer(el) {
