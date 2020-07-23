@@ -34,11 +34,11 @@ describe('utils tests', () => {
         it('throws an error if options are missing', () => {
             expect(() => utils.buildUrl('https://eko.com/v/AWLLK1')).toThrow('Missing required param embedOptions');
         });
-        it('includes embedapi in url', () => {
+        it.skip('includes embedapi in url', () => {
             let url = utils.buildUrl('https://eko.com/v/AWLLK1', { params: { debug: true } });
             expect(url.includes('embedapi=1.0')).toBe(true);
         });
-        it('includes the eko.playing event if autoplay is true and a cover exists', () => {
+        it.skip('includes the eko.playing event if autoplay is true and a cover exists', () => {
             let options = {
                 cover: 'someCoverElement',
                 params: {
@@ -48,7 +48,7 @@ describe('utils tests', () => {
             let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
             expect(url.includes('eko.playing')).toBe(true);
         });
-        it('includes the eko.canplay event if autoplay is false and a cover exists', () => {
+        it.skip('includes the eko.canplay event if autoplay is false and a cover exists', () => {
             let options = {
                 cover: 'someCoverElement',
                 params: {
@@ -58,14 +58,14 @@ describe('utils tests', () => {
             let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
             expect(url.includes('eko.canplay')).toBe(true);
         });
-        it('includes the sharemode=proxy if share.intent is in the event array', () => {
+        it.skip('includes the sharemode=proxy if share.intent is in the event array', () => {
             let options = {
                 events: ['share.intent']
             };
             let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
             expect(url.includes('sharemode=proxy')).toBe(true);
         });
-        it('includes the urlmode=proxy if urls.intent is in the event array', () => {
+        it.skip('includes the urlmode=proxy if urls.intent is in the event array', () => {
             let options = {
                 events: ['urls.intent']
             };
@@ -79,14 +79,14 @@ describe('utils tests', () => {
             let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
             expect(url.includes('events=urls.intent,playing,nodestart')).toBe(true);
         });
-        it('includes the page url params provided', () => {
+        it.skip('includes the page url params provided', () => {
             let pageUrl = 'https://abcdef.com?debug=true&myappid=abcdef';
             let pageParms = ['debug', 'myappid'];
             let url = utils.buildUrl('https://eko.com/v/AWLLK1', {}, pageUrl, pageParms);
             expect(url.includes('debug=true')).toBe(true);
             expect(url.includes('myappid=abcdef')).toBe(true);
         });
-        it('embed options has priority over page params', () => {
+        it.skip('embed options has priority over page params', () => {
             let pageUrl = 'https://abcdef.com?debug=true&myappid=abcdef';
             let pageParms = ['debug', 'myappid'];
             let options = {

@@ -12,6 +12,7 @@
         }
         .eko-cover {
             background-color: blue;
+            pointer-events: none;
             opacity: 0;
         }
         .eko-player-loading {
@@ -34,9 +35,9 @@
         <button onclick="pauseVideo()">Pause</button> <br><br>
     </div>
     <div>
-        <div id="ekoLoadingCover" class="eko-cover eko-player">
-        </div>
         <div id="ekoContainer" class="eko-player">
+        </div>
+        <div id="ekoLoadingCover" class="eko-cover eko-player">
         </div>
     </div>
     <!-- `/` is root of dist; we're being served as a static file in /test/integration/public -->

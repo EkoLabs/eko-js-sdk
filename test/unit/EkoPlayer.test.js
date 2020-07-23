@@ -60,7 +60,7 @@ describe('ekoplayer tests', () => {
             };
             jest.spyOn(utils, 'buildIFrame').mockReturnValue(iframe);
             let ekoplayer = new EkoPlayer('testelement');
-            ekoplayer.invoke('eko.play');
+            ekoplayer.invoke('play');
             expect(mockfn.mock.calls[0][0].type).toBe('eko.play');
         });
         it('includes the args when calling invoke', () => {
@@ -73,7 +73,7 @@ describe('ekoplayer tests', () => {
             };
             jest.spyOn(utils, 'buildIFrame').mockReturnValue(iframe);
             let ekoplayer = new EkoPlayer('testelement');
-            ekoplayer.invoke('eko.seek', 'myNodeId', 10);
+            ekoplayer.invoke('seek', 'myNodeId', 10);
             expect(mockfn.mock.calls[0][0].type).toBe('eko.seek');
             expect(Array.isArray(mockfn.mock.calls[0][0].args)).toBe(true);
             expect(mockfn.mock.calls[0][0].args[0]).toBe('myNodeId');
@@ -87,10 +87,7 @@ describe('ekoplayer tests', () => {
             let iframe = document.createElement('iframe');
             jest.spyOn(utils, 'buildIFrame').mockReturnValue(iframe);
             let ekoplayer = new EkoPlayer('testelement');
-            ekoplayer.on('eko.canplay', (ep, msg) => {
-                expect(msg.type).toEqual('eko.canplay');
-                done();
-            });
+            ekoplayer.on('canplay', done);
             window.postMessage({
                 type: 'eko.canplay',
                 embedId: iframe.id

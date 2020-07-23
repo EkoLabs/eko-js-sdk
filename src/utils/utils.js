@@ -1,5 +1,3 @@
-import merge from 'lodash.merge';
-
 function addQueryStringParams(uri, queryParams) {
     for (var key in queryParams) {
         // eslint-disable-next-line no-negated-condition
@@ -33,43 +31,31 @@ function extractQueryParams(url, params) {
     return finalObj;
 }
 
-function buildUrl(embedUrl, embedOptions, pageUrl, pageParams) {
+function uniq(arr) {
+    if (!Array.isArray(arr)) {
+        throw new TypeError(`[uniq] Expected array, instead got ${typeof arr}`);
+    }
+
+    return [...new Set(arr)];
+}
+
+function buildUrl(embedUrl, embedOptions) {
     if (!embedUrl) {
         throw new Error('Missing required param embedUrl');
     }
     if (!embedOptions) {
         throw new Error('Missing required param embedOptions');
     }
-    if (pageParams && !pageUrl) {
-        throw new Error('Provided page params but no page url');
+    if (embedOptions.pageParams && !Array.isArray(embedOptions.pageParams)) {
+        throw new Error('pageParams must be an array');
     }
-    if (pageParams && !Array.isArray(pageParams)) {
-        throw new Error('Pageparams must be an array');
-    }
-    let params = pageParams ? Object.assign({}, extractQueryParams(pageUrl, pageParams)) : {};
-    params = merge(params, embedOptions.params);
-    params.embedapi = '1.0';
-    let hascover = embedOptions.cover !== undefined;
-    let events = embedOptions.events || [];
-    if (hascover) {
-        if (embedOptions.params.autoplay) {
-            if (!events.find(val => val === 'eko.playing')) {
-                events.push('eko.playing');
-            }
-        } else if (!events.find(val => val === 'eko.canplay')) {
-            events.push('eko.canplay');
-        }
-    }
+    let params = embedOptions.pageParams ?
+        Object.assign({}, extractQueryParams(window.location.toString(), embedOptions.pageParams)) :
+        {};
+    params = Object.assign(params, embedOptions.params);
 
-    // If the events array includes share.intent, then the iframe should not handle share functionality
-    // Include `sharemode=proxy` into the project url so that the share.intent event gets forwarded from
-    // the share plugin.
-    if (events.includes('share.intent')) {
-        params.sharemode = 'proxy';
-    }
-    if (events.includes('urls.intent')) {
-        params.urlmode = 'proxy';
-    }
+    let events = embedOptions.events || [];
+
     if (events.length !== 0) {
         let eventList = events.join(',');
         params.events = eventList;
@@ -123,9 +109,10 @@ function buildIFrame(id) {
 }
 
 export default {
-    buildUrl: buildUrl,
-    buildIFrame: buildIFrame,
-    isEkoDomain: isEkoDomain,
-    getContainer: getContainer,
-    extractQueryParams: extractQueryParams
+    buildUrl,
+    buildIFrame,
+    isEkoDomain,
+    getContainer,
+    extractQueryParams,
+    uniq,
 };
