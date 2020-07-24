@@ -1,36 +1,3 @@
-function addQueryStringParams(uri, queryParams) {
-    for (var key in queryParams) {
-        // eslint-disable-next-line no-negated-condition
-        var separator = uri.indexOf('?') !== -1 ? '&' : '?';
-        uri += (separator + key + '=' + queryParams[key]);
-    }
-
-    return uri;
-}
-
-function extractQueryParams(url, params) {
-    let urlcomponents = url.split('?');
-    if (urlcomponents.length < 2) {
-        return;
-    }
-    let queryparams = urlcomponents[1];
-    let finalObj = {};
-    let pairs = queryparams.split('&');
-    pairs.reduce(function(map, pair) {
-        let keyVal = pair.split('=');
-
-        // Params can be strings or regex. Check if there are any matches
-        let matches = params.filter((val) => {
-            return (keyVal[0].match(val));
-        });
-        if (Array.isArray(keyVal) && keyVal.length === 2 && matches.length !== 0) {
-            map[keyVal[0]] = keyVal[1];
-        }
-        return map;
-    }, finalObj);
-    return finalObj;
-}
-
 function uniq(arr) {
     if (!Array.isArray(arr)) {
         throw new TypeError(`[uniq] Expected array, instead got ${typeof arr}`);
@@ -39,28 +6,46 @@ function uniq(arr) {
     return [...new Set(arr)];
 }
 
-function buildUrl(embedUrl, embedOptions) {
-    if (!embedUrl) {
-        throw new Error('Missing required param embedUrl');
-    }
-    if (!embedOptions) {
-        throw new Error('Missing required param embedOptions');
-    }
-    if (embedOptions.pageParams && !Array.isArray(embedOptions.pageParams)) {
-        throw new Error('pageParams must be an array');
-    }
-    let params = embedOptions.pageParams ?
-        Object.assign({}, extractQueryParams(window.location.toString(), embedOptions.pageParams)) :
-        {};
-    params = Object.assign(params, embedOptions.params);
+/**
+ * Returns a new object with a subset of properties from original object.
+ * @param {object} object - Source object.
+ * @param {(string|RegExp)[]} keys - Array of keys to pick from source object onto target object. RegExp is also supported.
+ */
+function pick(object, keys) {
+    return keys.reduce((obj, key) => {
+        if (key instanceof RegExp) {
+            Object.keys(object).forEach((objectKey) => {
+                if (key.test(objectKey)) {
+                    obj[objectKey] = object[objectKey];
+                }
+            });
+        } else if (object && object.hasOwnProperty(key)) {
+            obj[key] = object[key];
+        }
 
-    let events = embedOptions.events || [];
+        return obj;
+    }, {});
+}
 
-    if (events.length !== 0) {
-        let eventList = events.join(',');
-        params.events = eventList;
-    }
-    return addQueryStringParams(embedUrl, params);
+function parseQueryParams(queryStr) {
+    let retVal = {};
+    let searchParams = new URLSearchParams(queryStr);
+
+    searchParams.forEach((value, key) => {
+        retVal[key] = value;
+    });
+
+    return retVal;
+}
+
+function stringifyQueryParams(queryObj) {
+    let searchParams = new URLSearchParams();
+
+    Object.keys(queryObj).forEach((key) => {
+        searchParams.set(key, queryObj[key]);
+    });
+
+    return searchParams.toString();
 }
 
 function isEkoDomain(domain) {
@@ -93,6 +78,10 @@ function getContainer(el) {
     return retVal;
 }
 
+function buildEmbedUrl(projectId, embedParamsObj, env) {
+    return `https://${env ? (env + '.') : ''}eko.com/v/${projectId}/embed?${stringifyQueryParams(embedParamsObj)}`;
+}
+
 function buildIFrame(id) {
     let iframe = document.createElement('iframe');
     iframe.setAttribute('id', id);
@@ -109,10 +98,12 @@ function buildIFrame(id) {
 }
 
 export default {
-    buildUrl,
+    pick,
+    parseQueryParams,
+    stringifyQueryParams,
+    buildEmbedUrl,
     buildIFrame,
     isEkoDomain,
     getContainer,
-    extractQueryParams,
     uniq,
 };

@@ -1,7 +1,7 @@
 import utils from '../../../src/utils/utils';
 
-describe('utils tests', () => {
-    describe('build iframe test', () => {
+describe('utils', () => {
+    describe('buildIFrame()', () => {
         it('sets the id to the correct id', () => {
             let frame = utils.buildIFrame('ekoframe-1');
             expect(frame).not.toBe(undefined);
@@ -16,99 +16,19 @@ describe('utils tests', () => {
             expect(frame.style.position).toEqual('absolute');
         });
     });
-    describe('build url', () => {
-        it('adds the params to the url', () => {
-            let options = {
-                params: {
-                    debug: true,
-                    clearcheckpoints: false
-                }
-            };
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
-            expect(url.includes('debug=true')).toBe(true);
-            expect(url.includes('clearcheckpoints=false')).toBe(true);
-        });
-        it('throws an error if embed id is missing', () => {
-            expect(() => utils.buildUrl()).toThrow('Missing required param embedUrl');
-        });
-        it('throws an error if options are missing', () => {
-            expect(() => utils.buildUrl('https://eko.com/v/AWLLK1')).toThrow('Missing required param embedOptions');
-        });
-        it.skip('includes embedapi in url', () => {
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', { params: { debug: true } });
-            expect(url.includes('embedapi=1.0')).toBe(true);
-        });
-        it.skip('includes the eko.playing event if autoplay is true and a cover exists', () => {
-            let options = {
-                cover: 'someCoverElement',
-                params: {
-                    autoplay: true
-                }
-            };
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
-            expect(url.includes('eko.playing')).toBe(true);
-        });
-        it.skip('includes the eko.canplay event if autoplay is false and a cover exists', () => {
-            let options = {
-                cover: 'someCoverElement',
-                params: {
-                    autoplay: false
-                }
-            };
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
-            expect(url.includes('eko.canplay')).toBe(true);
-        });
-        it.skip('includes the sharemode=proxy if share.intent is in the event array', () => {
-            let options = {
-                events: ['share.intent']
-            };
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
-            expect(url.includes('sharemode=proxy')).toBe(true);
-        });
-        it.skip('includes the urlmode=proxy if urls.intent is in the event array', () => {
-            let options = {
-                events: ['urls.intent']
-            };
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
-            expect(url.includes('urlmode=proxy')).toBe(true);
-        });
-        it('includes all specified events in the url as a comma separated list', () => {
-            let options = {
-                events: ['urls.intent', 'playing', 'nodestart']
-            };
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', options);
-            expect(url.includes('events=urls.intent,playing,nodestart')).toBe(true);
-        });
-        it.skip('includes the page url params provided', () => {
-            let pageUrl = 'https://abcdef.com?debug=true&myappid=abcdef';
-            let pageParms = ['debug', 'myappid'];
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', {}, pageUrl, pageParms);
-            expect(url.includes('debug=true')).toBe(true);
-            expect(url.includes('myappid=abcdef')).toBe(true);
-        });
-        it.skip('embed options has priority over page params', () => {
-            let pageUrl = 'https://abcdef.com?debug=true&myappid=abcdef';
-            let pageParms = ['debug', 'myappid'];
-            let options = {
-                params: {
-                    debug: false
-                }
-            };
-            let url = utils.buildUrl('https://eko.com/v/AWLLK1', options, pageUrl, pageParms);
-            expect(url.includes('debug=false')).toBe(true);
-            expect(url.includes('myappid=abcdef')).toBe(true);
-        });
-    });
-    describe('eko domain tests', () => {
+
+    describe('isEkoDomain()', () => {
         it('returns false if the eko domain is not in the origin', () => {
             expect(utils.isEkoDomain('https://google.com')).toBe(false);
         });
         it('returns true if the eko domain is in the origin', () => {
             expect(utils.isEkoDomain('https://eko.com')).toBe(true);
             expect(utils.isEkoDomain('https://video.eko.com')).toBe(true);
+            expect(utils.isEkoDomain('https://video.eko.com/')).toBe(true);
         });
     });
-    describe('container tests', () => {
+
+    describe('getContainer()', () => {
         it('throws an error if no element is given', () => {
             expect(() => utils.getContainer()).toThrow('Expecting an element (or selector) as first argument.');
         });
@@ -121,27 +41,76 @@ describe('utils tests', () => {
                 .toThrow('Could not resolve DOM element.');
         });
     });
-    describe('query param extraction tests', () => {
-        it('does not include params that are not in the approved list', () => {
-            let params = utils.extractQueryParams('https://abcdef.com?debug=true&utm=someid&myappid=abc', ['debug', 'utm']);
-            expect(params.debug).toBe('true');
-            expect(params.utm).toBe('someid');
-            expect(params.myappid).toBe(undefined);
+
+    describe('pick()', () => {
+        it('Returns object containing only selected keys', () => {
+            expect(
+                utils.pick({ a: 1, b: 2, c: 3 }, ['a', 'c'])
+            ).toEqual({ a: 1, c: 3 });
         });
-        it('returns an empty object if there are no params from the approved list', () => {
-            let params = utils.extractQueryParams('https://abcdef.com?debug=true&utm=someid', ['myappid', 'test']);
-            expect(params).toEqual({});
+        it('Supports regex', () => {
+            expect(
+                utils.pick({
+                    autoplay: true,
+                    coolio: 'yay',
+                    utm_id: 'coolio',
+                    utm_marketing: 'thanks'
+                }, ['autoplay', /^utm_.*$/])
+            ).toEqual({
+                autoplay: true,
+                utm_id: 'coolio',
+                utm_marketing: 'thanks'
+            });
         });
-        it('includes params from the approved list', () => {
-            let params = utils.extractQueryParams('https://abcdef.com?debug=true&utm=someid', ['debug', 'test']);
-            expect(params.debug).toEqual('true');
-            expect(params.utm).toEqual(undefined);
+    });
+
+    describe('parseQueryParams()', () => {
+        it('Correctly parses a query param string', () => {
+            expect(
+                utils.parseQueryParams('autoplay=true&coolio=yay')
+            ).toEqual({
+                autoplay: 'true',
+                coolio: 'yay'
+            });
         });
-        it('handles regex as elements in the param array', () => {
-            let params = utils.extractQueryParams('https://abcdef.com?debug=true&utm_marketing=someid&utm_id=anotherid', ['debug', /utm_*/]);
-            expect(params.debug).toEqual('true');
-            expect(params.utm_id).toEqual('anotherid');
-            expect(params.utm_marketing).toEqual('someid');
+    });
+
+    describe('stringifyQueryParams()', () => {
+        it('Correctly stringifies query object', () => {
+            expect(
+                utils.stringifyQueryParams({
+                    autoplay: true,
+                    coolio: 'yay',
+                    events: 'canplay,playing'
+                })
+            ).toEqual('autoplay=true&coolio=yay&events=canplay%2Cplaying');
+        });
+    });
+
+    describe('buildEmbedUrl()', () => {
+        it('Returns correct embed URL', () => {
+            expect(
+                utils.buildEmbedUrl(
+                    'aBcDe',
+                    { autoplay: 'true', events: 'canplay,playing' }
+                )
+            ).toEqual('https://eko.com/v/aBcDe/embed?autoplay=true&events=canplay%2Cplaying');
+
+            expect(
+                utils.buildEmbedUrl(
+                    'aBcDe',
+                    { autoplay: 'true', events: 'canplay,playing' },
+                    'staging'
+                )
+            ).toEqual('https://staging.eko.com/v/aBcDe/embed?autoplay=true&events=canplay%2Cplaying');
+        });
+    });
+
+    describe('uniq()', () => {
+        it('Returns a unique array', () => {
+            expect(
+                utils.uniq([1, 2, 3, 2, 1, 'a', 'b', 'a', 'c', 'b', 'c'])
+            ).toEqual([1, 2, 3, 'a', 'b', 'c']);
         });
     });
 });

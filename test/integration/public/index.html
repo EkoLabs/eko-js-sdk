@@ -62,8 +62,8 @@
             let title = document.getElementById('frameTitle').value;
             let customCover = document.getElementById('customCover').checked;
 
-            let eventArr = events.replace(' ', '').split(',');
-            let paramArr = params.replace(' ', '').split(',');
+            let eventArr = events.trim().split(/[,\&]/).filter(e => !!e);
+            let paramArr = params.trim().split(/[,\&]/).filter(p => !!p);
             let paramsDict = paramArr.reduce((map, obj) => {
                 let pair = obj.split('=');
                 map[pair[0]] = pair[1];
@@ -78,7 +78,7 @@
             if (customCover) {
                 ekooptions.cover = '#ekoLoadingCover';
             }
-            ekoPlayer.getProjectInfo(projid, {env: environment}).then((response) => {
+            EkoPlayer.getProjectInfo(projid, {env: environment}).then((response) => {
                 console.log('Received the project info:');
                 console.log(response);
             }).catch((e) => {

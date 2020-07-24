@@ -12,7 +12,7 @@ const DEFAULT_OPTIONS = {
     pageParams: [
         'autoplay',
         'debug',
-        /utm_*/,
+        /^utm_.*$/,
         'headnodeid',
         'clearcheckpoints',
         'profiler',
@@ -52,18 +52,33 @@ class EkoPlayer {
         if (!el) {
             throw new Error('Constructor must get an element (or selector) as first argument.');
         }
-        this._iframe = utils.buildIFrame(`ekoframe-${++instanceCount}`);
-        this._eventEmitter = new EventEmitter();
-        this._cover = '';
-        this._autoplay = true;
-        let container = utils.getContainer(el);
-        if (container) {
-            container.appendChild(this._iframe);
+        if (!EkoPlayer.isSupported()) {
+            throw new Error('Cannot initialize EkoPlayer instance as Eko videos are not supported on current environment.'); // eslint-disable-line max-len
         }
+
+        // Initialize private members
+        this._iframe = utils.buildIFrame(`ekoembed-${++instanceCount}`);
+        this._eventEmitter = new EventEmitter();
+
+        // Bind Listeners
         this.onEkoEventFired = this.onEkoEventFired.bind(this);
+
+        // Attach event listeners
         this.addEventListeners();
-        this.exports = this.exportPublicAPI();
-        return this.exports;
+
+        // Append our iframe to provided DOM element/container
+        utils.getContainer(el).appendChild(this._iframe);
+
+        // Return our public API from the constructor
+        return {
+            play: this.play.bind(this),
+            pause: this.pause.bind(this),
+            load: this.load.bind(this),
+            invoke: this.invoke.bind(this),
+            on: this.on.bind(this),
+            once: this.once.bind(this),
+            off: this.off.bind(this)
+        };
     }
 
     /**
@@ -103,7 +118,8 @@ class EkoPlayer {
             }
         ]);
 
-        // Add embed params that are required for some events
+        // Add embed params that are required for some events,
+        // For example, if the "urls.intent" event is included, we must add the "urlsmode=proxy" embed param.
         Object.keys(EVENT_TO_EMBED_PARAMS_MAP)
             .forEach(event => {
                 if (options.events.includes(event)) {
@@ -115,8 +131,14 @@ class EkoPlayer {
         options.events = utils.uniq(options.events);
         options.pageParams = utils.uniq(options.pageParams);
 
+        // Add events to our params
+        options.params.events = options.events.join(',');
+
+        let coverDomEl;
+
+        // Resolve the cover DOM element if given
         if (options.cover) {
-            this._cover = utils.getContainer(options.cover);
+            coverDomEl = utils.getContainer(options.cover);
         }
 
         if (typeof options.frameTitle === 'string') {
@@ -125,25 +147,34 @@ class EkoPlayer {
             throw new Error(`Received type ${typeof options.frameTitle}. Expected string.`);
         }
 
-        if (typeof options.params.autoplay === 'boolean') {
-            this._autoplay = options.params.autoplay;
-        } else {
-            throw new Error(`Received type ${typeof options.params.autoplay}. Expected boolean.`);
-        }
+        // Get the final embed params object
+        // (merging params with selected page params to forward)
+        const embedParams = Object.assign(
+            {},
+            options.params,
+            utils.pick(
+                utils.parseQueryParams(window.location.search),
+                options.pageParams
+            )
+        );
 
-        if (this._cover) {
-            this._cover.classList.add('eko-player-loading');
+        // Handle adding and removing the "eko-player-loading" CSS class to the cover
+        if (coverDomEl) {
+            coverDomEl.classList.add('eko-player-loading');
+            const autoplay = typeof embedParams.autoplay === 'boolean' ?
+                embedParams.autoplay :
+                embedParams.autoplay !== 'false';
 
-            this.once(this._autoplay ? 'playing' : 'canplay', () => {
-                if (this._cover) {
-                    this._cover.classList.remove('eko-player-loading');
-                }
+            this.once(autoplay ? 'playing' : 'canplay', () => {
+                coverDomEl.classList.remove('eko-player-loading');
             });
         }
 
-        const embedUrl = `https://eko.com/v/${projectId}/embed`;
-        const iframeSrc = utils.buildUrl(embedUrl, options, window.location.toString());
-        this._iframe.setAttribute('src', iframeSrc);
+        // Finally, let's set the iframe's src to begin loading the project
+        this._iframe.setAttribute(
+            'src',
+            utils.buildEmbedUrl(projectId, embedParams, options.env)
+        );
     }
 
     /**
@@ -190,7 +221,7 @@ class EkoPlayer {
      * @returns
      * @memberof EkoPlayer
      */
-    getProjectInfo(projectId, options) {
+    static getProjectInfo(projectId, options) {
         let env = (options && options.env) || '';
         return axios.get(`https://${env}api.eko.com/v1/projects/${projectId}`)
             .then((response) => {
@@ -243,21 +274,6 @@ class EkoPlayer {
     // PRIVATE FUNCTIONS
     //////////////////////////
 
-    exportPublicAPI() {
-        let exportObj = {
-            play: this.play.bind(this),
-            pause: this.pause.bind(this),
-            load: this.load.bind(this),
-            invoke: this.invoke.bind(this),
-            getProjectInfo: this.getProjectInfo.bind(this),
-            on: this.on.bind(this),
-            once: this.once.bind(this),
-            off: this.off.bind(this)
-        };
-
-        return exportObj;
-    }
-
     /*
      * Private function. Will emit an event and pass its arguments.
      */
@@ -282,10 +298,6 @@ class EkoPlayer {
 
     addEventListeners() {
         window.addEventListener('message', this.onEkoEventFired);
-    }
-
-    removeEventListeners() {
-        window.removeEventListener('message', this.onEkoEventFired);
     }
 }
 
