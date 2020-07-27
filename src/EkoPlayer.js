@@ -18,7 +18,8 @@ const DEFAULT_OPTIONS = {
         'profiler',
         'autoprofiler',
         'hidePauseOverlay',
-        'studiorevision'
+        'studiorevision',
+        'forceTech',
     ],
 
     // The default events are needed for the SDK itself.
@@ -41,6 +42,7 @@ const EVENT_TO_EMBED_PARAMS_MAP = {
 };
 
 let instanceCount = 0;
+let isEkoSupported = null;
 
 class EkoPlayer {
     /**
@@ -88,8 +90,13 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     static isSupported() {
-        // TODO: implement this
-        return true;
+        if (isEkoSupported === null) {
+            isEkoSupported =
+                utils.isES6Supported() &&
+                utils.isWebAudioSupported();
+        }
+
+        return isEkoSupported;
     }
 
     /**

@@ -1,3 +1,5 @@
+import featureDetectES6 from 'feature-detect-es6';
+
 function uniq(arr) {
     if (!Array.isArray(arr)) {
         throw new TypeError(`[uniq] Expected array, instead got ${typeof arr}`);
@@ -97,6 +99,30 @@ function buildIFrame(id) {
     return iframe;
 }
 
+function isES6Supported() {
+    return featureDetectES6.all(
+        'class',
+        'arrowFunction',
+        'let',
+        'const',
+        'newArrayFeatures',
+        'newObjectFeatures',
+        'collections',
+        'promises',
+        'templateStrings',
+        'destructuring',
+        'spread',
+        'defaultParamValues'
+    );
+}
+
+function isWebAudioSupported() {
+    return !!(
+        window.AudioContext ||
+        window.webkitAudioContext
+    );
+}
+
 export default {
     pick,
     parseQueryParams,
@@ -106,4 +132,6 @@ export default {
     isEkoDomain,
     getContainer,
     uniq,
+    isES6Supported,
+    isWebAudioSupported,
 };

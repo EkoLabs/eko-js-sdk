@@ -1,6 +1,10 @@
 import utils from '../../../src/utils/utils';
 
 describe('utils', () => {
+    beforeAll(() => {
+        window.AudioContext = window.AudioContext || jest.fn();
+    });
+
     describe('buildIFrame()', () => {
         it('sets the id to the correct id', () => {
             let frame = utils.buildIFrame('ekoframe-1');
@@ -111,6 +115,19 @@ describe('utils', () => {
             expect(
                 utils.uniq([1, 2, 3, 2, 1, 'a', 'b', 'a', 'c', 'b', 'c'])
             ).toEqual([1, 2, 3, 'a', 'b', 'c']);
+        });
+    });
+
+    describe('isES6Supported()', () => {
+        it('Returns a boolean (true on jest test env)', () => {
+            expect(utils.isES6Supported()).toBe(true);
+        });
+    });
+
+    describe('isWebAudioSupported()', () => {
+        it('Returns a boolean', () => {
+            // Will return true on jest env, due to the beforeAll() hook
+            expect(utils.isWebAudioSupported()).toBe(true);
         });
     });
 });

@@ -1,8 +1,12 @@
 import EkoPlayer from '../../src/EkoPlayer';
 import utils from '../../src/utils/utils';
 
-describe('ekoplayer tests', () => {
-    describe('constructor tests', () => {
+describe('EkoPlayer', () => {
+    beforeAll(() => {
+        window.AudioContext = window.AudioContext || jest.fn();
+    });
+
+    describe('constructor', () => {
         it('throws an error if no element is passed in', () => {
             expect(() => new EkoPlayer()).toThrow('Constructor must get an element (or selector) as first argument.');
         });
@@ -20,7 +24,7 @@ describe('ekoplayer tests', () => {
             expect(typeof EkoPlayer.isSupported).toBe('function');
         });
     });
-    describe('load tests', () => {
+    describe('load()', () => {
         it('throws an error if the frame title is not a string', () => {
             jest.spyOn(utils, 'getContainer').mockReturnValue({ appendChild: () => {} });
             let ekoplayer = new EkoPlayer('testelement');
@@ -45,7 +49,7 @@ describe('ekoplayer tests', () => {
         });
     });
 
-    describe('invoke tests', () => {
+    describe('invoke()', () => {
         it('throws an error when the method is not a string', () => {
             jest.spyOn(utils, 'getContainer').mockReturnValue({ appendChild: () => {} });
             let ekoplayer = new EkoPlayer('testelement');
@@ -81,7 +85,7 @@ describe('ekoplayer tests', () => {
             expect(mockfn.mock.calls[0][0].args[1]).toBe(10);
         });
     });
-    describe('eventforwarding tests', () => {
+    describe('Event forwarding', () => {
         it('event gets forwarded on "on"', (done) => {
             jest.spyOn(utils, 'getContainer').mockReturnValue({ appendChild: () => {} });
             jest.spyOn(utils, 'isEkoDomain').mockReturnValue(true);
