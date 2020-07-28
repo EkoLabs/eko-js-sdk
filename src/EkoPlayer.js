@@ -1,7 +1,8 @@
 import axios from 'axios';
 import deepmerge from 'deepmerge';
-import utils from './utils/utils';
 import EventEmitter from 'eventemitter3';
+
+import utils from './utils/utils';
 
 const DEFAULT_OPTIONS = {
     env: '',
