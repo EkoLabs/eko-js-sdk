@@ -147,6 +147,11 @@ class EkoPlayer {
         // Resolve the cover DOM element if given
         if (options.cover) {
             coverDomEl = utils.getContainer(options.cover);
+
+            // Custom cover was given, let's add a cover=false embed param to disable default cover.
+            if (!options.params.hasOwnProperty('cover')) {
+                options.params.cover = false;
+            }
         }
 
         if (typeof options.frameTitle === 'string') {
