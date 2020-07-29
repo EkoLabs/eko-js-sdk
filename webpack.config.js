@@ -15,7 +15,9 @@ module.exports = () => {
             before(app) {
                 app.use('/test/integration/public/',
                     express.static(path.join(__dirname, 'test', 'integration', 'public')));
-            }
+            },
+            open: true,
+            openPage: 'test/integration/public/index.html'
         },
         output: {
             path: path.join(__dirname, 'dist'),

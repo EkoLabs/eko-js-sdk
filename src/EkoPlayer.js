@@ -1,5 +1,50 @@
 import axios from 'axios';
-import copySetterGetterFromInstance from './utils/copySetterGetterFromInstance';
+import deepmerge from 'deepmerge';
+import EventEmitter from 'eventemitter3';
+
+import utils from './utils/utils';
+
+const DEFAULT_OPTIONS = {
+    env: '',
+    frameTitle: 'Eko Player',
+    params: {
+        autoplay: true
+    },
+    pageParams: [
+        'autoplay',
+        'debug',
+        /^utm_.*$/,
+        'headnodeid',
+        'clearcheckpoints',
+        'profiler',
+        'autoprofiler',
+        'hidePauseOverlay',
+        'studiorevision',
+        'forceTech',
+    ],
+
+    // The default events are needed for the SDK itself.
+    // Any additional events will be concatenated.
+    events: [
+        'canplay',
+        'playing'
+    ]
+};
+
+// Listening to some events requires embed params to be added to the iframe's src.
+// This is a map of such events to their respective required embed params.
+const EVENT_TO_EMBED_PARAMS_MAP = {
+    'urls.intent': {
+        urlsmode: 'proxy'
+    },
+    'share.intent': {
+        sharemode: 'proxy'
+    }
+};
+
+let instanceCount = 0;
+let isEkoSupported = null;
+
 class EkoPlayer {
     /**
      * Creates an instance of EkoPlayer.
@@ -10,33 +55,33 @@ class EkoPlayer {
         if (!el) {
             throw new Error('Constructor must get an element (or selector) as first argument.');
         }
-        this._iframe = document.createElement('iframe');
-        this._iframe.frameBorder = 0;
-        this._iframe.width = '100%';
-        this._iframe.height = '100%';
-        this._iframe.id = 'ekoPlayer';
-        this._iframe.title = 'Eko Player';
-
-        this._cover = '';
-        this._autoplay = true;
-        let container = this.getContainer(el);
-        if (container) {
-            container.appendChild(this._iframe);
+        if (!EkoPlayer.isSupported()) {
+            throw new Error('Cannot initialize EkoPlayer instance as Eko videos are not supported on current environment.'); // eslint-disable-line max-len
         }
+
+        // Initialize private members
+        this._iframe = utils.buildIFrame(`ekoembed-${++instanceCount}`);
+        this._eventEmitter = new EventEmitter();
+
+        // Bind Listeners
+        this.onEkoEventFired = this.onEkoEventFired.bind(this);
+
+        // Attach event listeners
         this.addEventListeners();
-        this.exports = this.exportPublicAPI();
-        return this.exports;
-    }
 
-    set onEvent(eventCallback) {
-        if (typeof eventCallback !== 'function') {
-            throw new Error(`onEvent must be a function. Received ${typeof eventCallback} instead.`);
-        }
-        this._eventListener = eventCallback;
-    }
+        // Append our iframe to provided DOM element/container
+        utils.getContainer(el).appendChild(this._iframe);
 
-    get onEvent() {
-        return this._eventListener;
+        // Return our public API from the constructor
+        return {
+            play: this.play.bind(this),
+            pause: this.pause.bind(this),
+            load: this.load.bind(this),
+            invoke: this.invoke.bind(this),
+            on: this.on.bind(this),
+            once: this.once.bind(this),
+            off: this.off.bind(this)
+        };
     }
 
     /**
@@ -46,55 +91,103 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     static isSupported() {
-        // TODO: implement this
-        return true;
+        if (isEkoSupported === null) {
+            isEkoSupported =
+                utils.isES6Supported() &&
+                utils.isWebAudioSupported();
+        }
+
+        return isEkoSupported;
     }
 
     /**
      * Will load and display an eko project.
      *
      * @param {string} projectId - id of the project to load
-     * @param {object} options - loading options
-     * @param {object} options.params - A list of embed params that will affect the delivery. Default includes {autoplay: true}.
-     * @param {string[]} options.events - A list of events that should be forwarded to the app.
-     * @param {Element|string} options.cover - An element or the query selector string for a loading cover. When loading happens a “eko-player-loading” class will be added to the element. When loading finishes, the “eko-player-loading” class will be removed. If no cover is provided, the default eko loading cover will be shown.
-     * @param {string} options.frameTitle -  The title for the iframe.
+     * @param {object} [options] - loading options
+     * @param {object} [options.params] - A list of embed params that will affect the delivery. Default includes {autoplay: true}.
+     * @param {string[]} [options.events] - A list of events that should be forwarded to the app.
+     * @param {Element|string} [options.cover] - An element or the query selector string for a loading cover. When loading happens a “eko-player-loading” class will be added to the element. When loading finishes, the “eko-player-loading” class will be removed. If no cover is provided, the default eko loading cover will be shown.
+     * @param {string} [options.frameTitle] -  The title for the iframe.
+     * @param {array} [options.pageParams] - Any query params from the page url that should be forwarded to the iframe. Can supply regex and strings. By default, the following query params will automatically be forwarded: autoplay, debug, utm_*, headnodeid
      * @returns Promise that will fail if the project id is invalid
      * @memberof EkoPlayer
      */
     load(projectId, options) {
-        let env = '';
-        if (options && options.env) {
-            env = `${options.env}.`;
-        }
-        if (options && options.cover) {
-            this._cover = this.getContainer(options.cover);
-        }
-        if (options && typeof options.frameTitle === 'string') {
-            this._iframe.title = options.frameTitle;
-        }
+        // Deep merge of default options with provided options (arrays are concatenated).
+        options = deepmerge.all([
+            DEFAULT_OPTIONS,
+            options || {},
+            {
+                params: {
+                    embedapi: '1.0',
+                    embedid: this._iframe.id
+                }
+            }
+        ]);
 
-        if (options && options.params && typeof options.params.autoplay === 'boolean') {
-            this._autoplay = options.params.autoplay;
-        }
-
-        return axios.get(`https://${env}eko.com/api/v1/projects/${projectId}`)
-            .then((response) => {
-                if (response.data) {
-                    let embedUrl = response.data.embedUrl;
-                    let projectUrl = this.buildUrl(embedUrl, options);
-                    if (options && options.cover) {
-                        this._cover.classList.add('eko-player-loading');
-                    }
-                    this._iframe.setAttribute('src', projectUrl);
-                    if (response.data.metadata) {
-                        this._eventListener({
-                            type: 'metadata',
-                            data: response.data.metadata
-                        });
-                    }
+        // Add embed params that are required for some events,
+        // For example, if the "urls.intent" event is included, we must add the "urlsmode=proxy" embed param.
+        Object.keys(EVENT_TO_EMBED_PARAMS_MAP)
+            .forEach(event => {
+                if (options.events.includes(event)) {
+                    options.params = Object.assign(options.params, EVENT_TO_EMBED_PARAMS_MAP[event]);
                 }
             });
+
+        // Get rid of any duplications in arrays
+        options.events = utils.uniq(options.events);
+        options.pageParams = utils.uniq(options.pageParams);
+
+        // Add events to our params
+        options.params.events = options.events.join(',');
+
+        let coverDomEl;
+
+        // Resolve the cover DOM element if given
+        if (options.cover) {
+            coverDomEl = utils.getContainer(options.cover);
+
+            // Custom cover was given, let's add a cover=false embed param to disable default cover.
+            if (!options.params.hasOwnProperty('cover')) {
+                options.params.cover = false;
+            }
+        }
+
+        if (typeof options.frameTitle === 'string') {
+            this._iframe.setAttribute('title', options.frameTitle);
+        } else {
+            throw new Error(`Received type ${typeof options.frameTitle}. Expected string.`);
+        }
+
+        // Get the final embed params object
+        // (merging params with selected page params to forward)
+        const embedParams = Object.assign(
+            {},
+            options.params,
+            utils.pick(
+                utils.parseQueryParams(window.location.search),
+                options.pageParams
+            )
+        );
+
+        // Handle adding and removing the "eko-player-loading" CSS class to the cover
+        if (coverDomEl) {
+            coverDomEl.classList.add('eko-player-loading');
+            const autoplay = typeof embedParams.autoplay === 'boolean' ?
+                embedParams.autoplay :
+                embedParams.autoplay !== 'false';
+
+            this.once(autoplay ? 'playing' : 'canplay', () => {
+                coverDomEl.classList.remove('eko-player-loading');
+            });
+        }
+
+        // Finally, let's set the iframe's src to begin loading the project
+        this._iframe.setAttribute(
+            'src',
+            utils.buildEmbedUrl(projectId, embedParams, options.env)
+        );
     }
 
     /**
@@ -103,7 +196,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     play() {
-        this.invoke('eko.play');
+        this.invoke('play');
     }
 
     /**
@@ -112,7 +205,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     pause() {
-        this.invoke('eko.pause');
+        this.invoke('pause');
     }
 
     /**
@@ -124,111 +217,100 @@ class EkoPlayer {
      */
     invoke(method, ...args) {
         if (typeof method !== 'string') {
-            throw new Error('Expected required argument method of type string');
+            throw new Error('Expected required argument method to have type string');
         }
         const action = {
-            type: method,
+            type: `eko.${method}`,
             args: args
         };
         this._iframe.contentWindow.postMessage(action, '*');
+    }
+
+    /**
+     * Retrieves the project info from the eko zuri APIs
+     *
+     * @param {string} projectId - project id to get info of
+     * @param {object} options - change the env if necessary
+     * @returns
+     * @memberof EkoPlayer
+     */
+    static getProjectInfo(projectId, options) {
+        let env = (options && options.env) || '';
+        return axios.get(`https://${env}api.eko.com/v1/projects/${projectId}`)
+            .then((response) => {
+                if (!response.data || !response.data.data) {
+                    throw new Error('Response is missing required data');
+                }
+
+                return response.data.data;
+            });
+    }
+
+    /**
+     * Event emitter function that will let a module register a callback for a specified event issued from
+     * the EkoPlayer.
+     *
+     * @param {String} eventName
+     * @param {function} callback
+     * @memberof EkoPlayer
+     */
+    on(eventName, callback) {
+        this._eventEmitter.on(eventName, callback);
+    }
+
+    /**
+     * Event emitter function that will let a module remove a callback for a specified event issued from
+     * the EkoPlayer.
+     *
+     * @param {String} eventName
+     * @param {function} callback
+     * @memberof EkoPlayer
+     */
+    off(eventName, callback) {
+        this._eventEmitter.off(eventName, callback);
+    }
+
+    /**
+     * Event emitter function that will let a module register a callback for a specified event
+     * from the EkoPlayer. The callback will only be called once, while the event may
+     * be emitted more than once.
+     *
+     * @param {String} eventName
+     * @param {function} callback
+     * @memberof EkoPlayer
+     */
+    once(eventName, callback) {
+        this._eventEmitter.once(eventName, callback);
     }
 
     ///////////////////////////
     // PRIVATE FUNCTIONS
     //////////////////////////
 
-    exportPublicAPI() {
-        let exportObj = {
-            play: this.play.bind(this),
-            pause: this.pause.bind(this),
-            load: this.load.bind(this),
-            invoke: this.invoke.bind(this)
-        };
-        copySetterGetterFromInstance(this, exportObj, 'onEvent');
-        return exportObj;
-    }
-
-    getContainer(el) {
-        let retVal = null;
-
-        if (!el) {
-            throw new Error('Expecting an element (or selector) as first argument.');
-        } else if (typeof el === 'string') {
-            // Otherwise, if el is a string (selector)
-            try {
-                retVal = document.querySelector(el);
-            } catch (e) { }
-
-            if (!retVal) {
-                throw new Error(`Could not successfully resolve selector: ${el}`);
-            }
-        } else {
-            // Otherwise, el is assumed to be the container <div> element itself.
-            retVal = el;
-        }
-
-        if (!retVal || typeof retVal.appendChild !== 'function') {
-            throw new Error(`Could not resolve DOM element.`);
-        }
-
-        return retVal;
-    }
-
-    buildUrl(embedUrl, options) {
-        let params = (options && options.params) || { autoplay: true };
-        let hascover = options && options.cover !== undefined;
-        let events = (options && options.events) || [];
-
-        let projectUrl = `${embedUrl}?embedapi=1.0`;
-        Object.keys(params).forEach((key) => {
-            projectUrl = `${projectUrl}&${key}=${params[key]}`;
-        });
-        if (hascover) {
-            if (options.params.autoplay) {
-                if (!events.find(val => val === 'eko.playing')) {
-                    events.push('eko.playing');
-                }
-            } else if (!events.find(val => val === 'eko.canplay')) {
-                events.push('eko.canplay');
-            }
-        }
-
-        // If the events array includes share.intent, then the iframe should not handle share functionality
-        // Include `sharemode=proxy` into the project url so that the share.intent event gets forwarded from
-        // the share plugin.
-        if (events.includes('share.intent')) {
-            projectUrl = `${projectUrl}&sharemode=proxy`;
-        }
-        let eventList = events.join(',');
-        projectUrl = `${projectUrl}&events=${eventList}`;
-        return projectUrl;
+    /*
+     * Private function. Will emit an event and pass its arguments.
+     */
+    trigger(eventName, ...args) {
+        this._eventEmitter.emit(eventName, ...args);
     }
 
     onEkoEventFired(event) {
-        if (!/https?:\/\/(.*?\.)?eko.com/.test(event.origin)) {
+        if (!utils.isEkoDomain(event.origin)) {
             return;
         }
 
         const msg = event.data;
-        if (msg.type) {
-            const shouldRemoveCover = this._cover &&
-            ((msg.type === 'eko.playing' && this._autoplay) || (msg.type === 'eko.canplay' && !this._autoplay));
-            if (shouldRemoveCover) {
-                this._cover.classList.remove('eko-player-loading');
-            }
 
-            if (msg.type && this._eventListener) {
-                this._eventListener(msg);
-            }
+        // Do nothing if this message was not intended for us
+        if (!msg.type || msg.embedId !== this._iframe.id) {
+            return;
         }
+
+        this.trigger.apply(this, [msg.type.replace(/^eko./, '')].concat(msg.args));
     }
 
     addEventListeners() {
-        window.addEventListener('message', this.onEkoEventFired.bind(this));
-    }
-
-    removeEventListeners() {
-        window.removeEventListener('message', this.onEkoEventFired);
+        window.addEventListener('message', this.onEkoEventFired);
     }
 }
 

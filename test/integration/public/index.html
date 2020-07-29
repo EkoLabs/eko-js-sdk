@@ -12,6 +12,7 @@
         }
         .eko-cover {
             background-color: blue;
+            pointer-events: none;
             opacity: 0;
         }
         .eko-player-loading {
@@ -34,9 +35,9 @@
         <button onclick="pauseVideo()">Pause</button> <br><br>
     </div>
     <div>
-        <div id="ekoLoadingCover" class="eko-cover eko-player">
-        </div>
         <div id="ekoContainer" class="eko-player">
+        </div>
+        <div id="ekoLoadingCover" class="eko-cover eko-player">
         </div>
     </div>
     <!-- `/` is root of dist; we're being served as a static file in /test/integration/public -->
@@ -45,9 +46,6 @@
         let ekoPlayer;
         window.onload = function() {
             ekoPlayer = new EkoPlayer('#ekoContainer');
-            ekoPlayer.onEvent = (msg) => {
-                console.log(msg);
-            };
         }
         playVideo = function() {
             ekoPlayer.play();
@@ -64,8 +62,8 @@
             let title = document.getElementById('frameTitle').value;
             let customCover = document.getElementById('customCover').checked;
 
-            let eventArr = events.replace(' ', '').split(',');
-            let paramArr = params.replace(' ', '').split(',');
+            let eventArr = events.trim().split(/[,\&]/).filter(e => !!e);
+            let paramArr = params.trim().split(/[,\&]/).filter(p => !!p);
             let paramsDict = paramArr.reduce((map, obj) => {
                 let pair = obj.split('=');
                 map[pair[0]] = pair[1];
@@ -80,9 +78,20 @@
             if (customCover) {
                 ekooptions.cover = '#ekoLoadingCover';
             }
-            ekoPlayer.load(projid, ekooptions).catch((e) => {
+            EkoPlayer.getProjectInfo(projid, {env: environment}).then((response) => {
+                console.log('Received the project info:');
+                console.log(response);
+            }).catch((e) => {
+                console.log('Project info errored out');
                 console.log(e);
             });
+            eventArr.forEach(element => {
+                console.log(element);
+                ekoPlayer.on(`eko.${element}`, (player, msg) => {
+                    console.log(msg);
+                });
+            });
+            ekoPlayer.load(projid, ekooptions);
         }
         
     </script>
