@@ -1,5 +1,5 @@
 {
-    "name": "ekojssdk",
+    "name": "eko-js-sdk",
     "version": "0.0.1",
     "description": "A lightweight SDK that allows for easy integration of eko videos into webpages.",
     "main": "src/EkoPlayer.js",
