@@ -29,7 +29,7 @@ jobs:
       - name: Create Git Tag
         uses: Klemensas/action-autotag@stable
         with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Publish to NPM
         id: publish
         uses: JS-DevTools/npm-publish@v1
