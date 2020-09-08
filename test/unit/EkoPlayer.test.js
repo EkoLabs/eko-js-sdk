@@ -47,6 +47,14 @@ describe('EkoPlayer', () => {
             ekoplayer.load('AWLLK1');
             expect(iframe.src.includes('https://eko.com/v/AWLLK1')).toBe(true);
         });
+        it('supports function as the "cover" option', () => {
+            const coverCallback = jest.fn();
+            let iframe = document.createElement('iframe');
+            jest.spyOn(utils, 'buildIFrame').mockReturnValue(iframe);
+            let ekoplayer = new EkoPlayer('testelement');
+            ekoplayer.load('AWLLK1', { cover: coverCallback });
+            expect(coverCallback).toHaveBeenCalledWith('loading');
+        });
     });
 
     describe('invoke()', () => {
