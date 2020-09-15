@@ -147,6 +147,7 @@ class EkoPlayer {
         // Add events to our params
         options.params.events = options.events.join(',');
 
+        // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
         if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
             options.params.eauid = window.EkoAnalytics('getUid');
         }
