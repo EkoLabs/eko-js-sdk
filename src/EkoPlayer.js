@@ -147,6 +147,10 @@ class EkoPlayer {
         // Add events to our params
         options.params.events = options.events.join(',');
 
+        if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
+            options.params.eauid = window.EkoAnalytics('getUid');
+        }
+
         let coverDomEl;
         let coverCallback;
 
