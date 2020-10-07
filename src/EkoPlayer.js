@@ -107,7 +107,12 @@ class EkoPlayer {
      * @param {object} [options] - loading options
      * @param {object} [options.params] - A list of embed params that will affect the delivery. Default includes {autoplay: true}.
      * @param {string[]} [options.events] - A list of events that should be forwarded to the app.
-     * @param {Element|string} [options.cover] - An element or the query selector string for a loading cover. When loading happens a “eko-player-loading” class will be added to the element. When loading finishes, the “eko-player-loading” class will be removed. If no cover is provided, the default eko loading cover will be shown.
+     * @param {Element|string|function} [options.cover] - An element or the query selector string for a loading cover.
+     * When loading happens a “eko-player-loading” class will be added to the element.
+     * When loading finishes, the “eko-player-loading” class will be removed.
+     * If a function is passed, it will be invoked with a single string argument (state) whenever the state changes.
+     * The possible state values are "loading" (cover should be shown) and "loaded" (cover should be hidden).
+     * If no cover is provided, the default eko loading cover will be shown.
      * @param {string} [options.frameTitle] -  The title for the iframe.
      * @param {array} [options.pageParams] - Any query params from the page url that should be forwarded to the iframe. Can supply regex and strings. By default, the following query params will automatically be forwarded: autoplay, debug, utm_*, headnodeid
      * @returns Promise that will fail if the project id is invalid
@@ -142,11 +147,22 @@ class EkoPlayer {
         // Add events to our params
         options.params.events = options.events.join(',');
 
-        let coverDomEl;
+        // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
+        if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
+            options.params.eauid = window.EkoAnalytics('getUid');
+        }
 
-        // Resolve the cover DOM element if given
+        let coverDomEl;
+        let coverCallback;
+
         if (options.cover) {
-            coverDomEl = utils.getContainer(options.cover);
+            // Handle cover callback
+            if (typeof options.cover === 'function') {
+                coverCallback = options.cover;
+            } else {
+                // Resolve the cover DOM element if given
+                coverDomEl = utils.getContainer(options.cover);
+            }
 
             // Custom cover was given, let's add a cover=false embed param to disable default cover.
             if (!options.params.hasOwnProperty('cover')) {
@@ -171,15 +187,24 @@ class EkoPlayer {
             )
         );
 
-        // Handle adding and removing the "eko-player-loading" CSS class to the cover
-        if (coverDomEl) {
-            coverDomEl.classList.add('eko-player-loading');
+        // Handle cover logic
+        if (coverDomEl || coverCallback) {
+            if (coverDomEl) {
+                coverDomEl.classList.add('eko-player-loading');
+            } else if (coverCallback) {
+                coverCallback('loading');
+            }
+
             const autoplay = typeof embedParams.autoplay === 'boolean' ?
                 embedParams.autoplay :
                 embedParams.autoplay !== 'false';
 
             this.once(autoplay ? 'playing' : 'canplay', () => {
-                coverDomEl.classList.remove('eko-player-loading');
+                if (coverDomEl) {
+                    coverDomEl.classList.remove('eko-player-loading');
+                } else if (coverCallback) {
+                    coverCallback('loaded');
+                }
             });
         }
 
