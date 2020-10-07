@@ -148,9 +148,11 @@ class EkoPlayer {
         options.params.events = options.events.join(',');
 
         // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
+        /* eslint-disable new-cap */
         if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
             options.params.eauid = window.EkoAnalytics('getUid');
         }
+        /* eslint-enable new-cap */
 
         let coverDomEl;
         let coverCallback;

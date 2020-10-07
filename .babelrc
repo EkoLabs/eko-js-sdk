@@ -9,6 +9,7 @@
       "@babel/preset-env",
       {
         "useBuiltIns": "entry",
+        "corejs": 3,
         "targets": {
           "chrome": "63",
           "edge": "40",

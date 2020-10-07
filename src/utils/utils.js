@@ -90,7 +90,7 @@ function buildIFrame(id) {
     iframe.setAttribute('title', 'Eko Player');
     iframe.setAttribute('style', 'position: absolute; width: 100%; height: 100%; border: 0;');
     iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('allow', 'autoplay; fullscreen');
+    iframe.setAttribute('allow', 'autoplay *; fullscreen *');
 
     // These are currently experimental attributes, so they may not have any effect on some browsers
     iframe.setAttribute('importance', 'high');
