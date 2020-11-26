@@ -1,4 +1,3 @@
-import axios from 'axios';
 import deepmerge from 'deepmerge';
 import EventEmitter from 'eventemitter3';
 
@@ -273,26 +272,6 @@ class EkoPlayer {
             args: args
         };
         this._iframe.contentWindow.postMessage(action, '*');
-    }
-
-    /**
-     * Retrieves the project info from the eko zuri APIs
-     *
-     * @param {string} projectId - project id to get info of
-     * @param {object} options - change the env if necessary
-     * @returns
-     * @memberof EkoPlayer
-     */
-    static getProjectInfo(projectId, options) {
-        let env = (options && options.env) || '';
-        return axios.get(`https://${env}api.eko.com/v1/projects/${projectId}`)
-            .then((response) => {
-                if (!response.data || !response.data.data) {
-                    throw new Error('Response is missing required data');
-                }
-
-                return response.data.data;
-            });
     }
 
     /**
