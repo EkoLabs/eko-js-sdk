@@ -78,13 +78,6 @@
             if (customCover) {
                 ekooptions.cover = '#ekoLoadingCover';
             }
-            EkoPlayer.getProjectInfo(projid, {env: environment}).then((response) => {
-                console.log('Received the project info:');
-                console.log(response);
-            }).catch((e) => {
-                console.log('Project info errored out');
-                console.log(e);
-            });
             eventArr.forEach(element => {
                 console.log(element);
                 ekoPlayer.on(`eko.${element}`, (player, msg) => {

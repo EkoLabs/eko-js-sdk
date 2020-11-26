@@ -22,25 +22,6 @@ if (!EkoPlayer.isSupported()) {
 }
 ```
 
-#### getProjectInfo(projectId)
-
-Retrieves delivery information about the project. See our [project schema documentation](https://developer.eko.com/docs/embedding/http.html#project-overrides-schema) for more information about what is delivered.
-
-| Param           | Type           | Description  |
-| :-------------: |:--------------:| :------------|
-| projectId | `String` | The id of the project to retrieve information for. |
-
-**Example**
-
-```javascript
-EkoPlayer.getProjectInfo('AWLLK1')
-    .then(projectInfo => {
-        const { title, description, thumbnail } = projectInfo;
-        console.log(`Got project info: ${title} - ${description}`);
-    })
-    .catch(e => console.error('Failed to fetch project info:', e));
-```
-
 ### Methods
 
 #### EkoPlayer(el)
