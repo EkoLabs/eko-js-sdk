@@ -20,7 +20,6 @@ describe('EkoPlayer', () => {
             expect(typeof ekoplayer.play).toBe('function');
             expect(typeof ekoplayer.pause).toBe('function');
             expect(typeof ekoplayer.invoke).toBe('function');
-            expect(typeof EkoPlayer.getProjectInfo).toBe('function');
             expect(typeof EkoPlayer.isSupported).toBe('function');
         });
     });
