@@ -69,6 +69,15 @@ describe('EkoPlayer', () => {
             ekoplayer.load('AWLLK1', { cover: coverCallback });
             expect(coverCallback).toHaveBeenCalledWith('loading');
         });
+        it('sets the iframe source to use Delivery serivce', () => {
+            jest.spyOn(utils, 'getContainer').mockReturnValue({ appendChild: () => {} });
+            let iframe = document.createElement('iframe');
+            jest.spyOn(utils, 'buildIFrame').mockReturnValue(iframe);
+            let ekoplayer = new EkoPlayer('testelement');
+            ekoplayer.load('AWLLK1', { useDeliveryService: true });
+            expect(iframe.src.includes('https://embed.eko.com/?id=AWLLK1')).toBe(true);
+            expect(iframe.src.includes('&embedapi=2.0')).toBe(true);
+        });
     });
 
     describe('invoke()', () => {

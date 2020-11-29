@@ -33,7 +33,7 @@ describe('utils', () => {
                 .toThrow('Could not successfully resolve selector: testelement');
         });
         it('throws an error if a non element is passed in', () => {
-            expect(() => utils.getContainer({params: true}))
+            expect(() => utils.getContainer({ params: true }))
                 .toThrow('Could not resolve DOM element.');
         });
     });
@@ -85,12 +85,23 @@ describe('utils', () => {
 
     describe('buildEmbedUrl()', () => {
         it('Returns correct embed URL', () => {
+            // Baloo
             expect(
                 utils.buildEmbedUrl(
                     'aBcDe',
                     { autoplay: 'true', events: 'canplay,playing' }
                 )
             ).toEqual('https://eko.com/v/aBcDe/embed?autoplay=true&events=canplay%2Cplaying');
+
+            // Delivery
+            expect(
+                utils.buildEmbedUrl(
+                    'aBcDe',
+                    { autoplay: 'true', events: 'canplay,playing' },
+                    '',
+                    true
+                )
+            ).toEqual('https://embed.eko.com/?id=aBcDe&autoplay=true&events=canplay%2Cplaying');
 
             expect(
                 utils.buildEmbedUrl(
@@ -99,6 +110,15 @@ describe('utils', () => {
                     'staging'
                 )
             ).toEqual('https://staging.eko.com/v/aBcDe/embed?autoplay=true&events=canplay%2Cplaying');
+
+            expect(
+                utils.buildEmbedUrl(
+                    'aBcDe',
+                    { autoplay: 'true', events: 'canplay,playing' },
+                    'staging',
+                    true
+                )
+            ).toEqual('https://stagingembed.eko.com/?id=aBcDe&autoplay=true&events=canplay%2Cplaying')
         });
     });
 

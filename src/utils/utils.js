@@ -80,8 +80,10 @@ function getContainer(el) {
     return retVal;
 }
 
-function buildEmbedUrl(projectId, embedParamsObj, env) {
-    return `https://${env ? (env + '.') : ''}eko.com/v/${projectId}/embed?${stringifyQueryParams(embedParamsObj)}`;
+function buildEmbedUrl(projectId, embedParamsObj, env, useDeliveryService) {
+    return useDeliveryService ?
+        `https://${env}embed.eko.com/?id=${projectId}&${stringifyQueryParams(embedParamsObj)}` :
+        `https://${env ? (env + '.') : ''}eko.com/v/${projectId}/embed?${stringifyQueryParams(embedParamsObj)}`;
 }
 
 function buildIFrame(id) {

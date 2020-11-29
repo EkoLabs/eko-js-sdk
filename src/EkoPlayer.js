@@ -36,7 +36,8 @@ const DEFAULT_OPTIONS = {
     events: [
         'canplay',
         'playing'
-    ]
+    ],
+    useDeliveryService: false
 };
 
 // Listening to some events requires embed params to be added to the iframe's src.
@@ -133,7 +134,7 @@ class EkoPlayer {
             options || {},
             {
                 params: {
-                    embedapi: '1.0',
+                    embedapi: (options && options.useDeliveryService) ? '2.0' : '1.0',
                     embedid: this._iframe.id
                 }
             }
@@ -220,7 +221,7 @@ class EkoPlayer {
                     this._iframe.setAttribute(attribute, options.iframeAttributes[attribute]);
                 } else {
                     throw new Error(`iframe attribute: ${attribute},
-                    Received type ${typeof options.iframeAttributes[attribute]}. Expected string.`);
+                        Received type ${typeof options.iframeAttributes[attribute]}. Expected string.`);
                 }
             });
 
@@ -228,7 +229,7 @@ class EkoPlayer {
         // Finally, let's set the iframe's src to begin loading the project
         this._iframe.setAttribute(
             'src',
-            utils.buildEmbedUrl(projectId, embedParams, options.env)
+            utils.buildEmbedUrl(projectId, embedParams, options.env, options.useDeliveryService)
         );
     }
 
