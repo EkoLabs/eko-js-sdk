@@ -11,14 +11,6 @@ describe('utils', () => {
             expect(frame).not.toBe(undefined);
             expect(frame.id).toEqual('ekoframe-1');
         });
-        it('sets the style of the iframe', () => {
-            let frame = utils.buildIFrame('ekoframe-1');
-            expect(frame).not.toBe(undefined);
-            expect(frame.style.width).toEqual('100%');
-            expect(frame.style.height).toEqual('100%');
-            expect(frame.style.border).toEqual('0px');
-            expect(frame.style.position).toEqual('absolute');
-        });
     });
 
     describe('isEkoDomain()', () => {

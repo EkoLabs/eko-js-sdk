@@ -5,7 +5,16 @@ import utils from './utils/utils';
 
 const DEFAULT_OPTIONS = {
     env: '',
-    frameTitle: 'Eko Player',
+    iframeAttributes: {
+        title: 'Eko Player',
+        style: 'position: absolute; width: 100%; height: 100%; border: 0;',
+        allowfullscreen: '',
+        allow: 'autoplay *; fullscreen *',
+
+        // These are currently experimental attributes, so they may not have any effect on some browsers
+        importance: 'high',
+        loading: 'eager'
+    },
     params: {
         autoplay: true
     },
@@ -125,7 +134,7 @@ class EkoPlayer {
      * If a function is passed, it will be invoked with a single string argument (state) whenever the state changes.
      * The possible state values are "loading" (cover should be shown) and "loaded" (cover should be hidden).
      * If no cover is provided, the default eko loading cover will be shown.
-     * @param {string} [options.frameTitle] -  The title for the iframe.
+     * @param {object} [options.iframeAttributes] - standard attributes of iframe HTML element
      * @param {array} [options.pageParams] - Any query params from the page url that should be forwarded to the iframe. Can supply regex and strings. By default, the following query params will automatically be forwarded: autoplay, debug, utm_*, headnodeid
      * @returns Promise that will fail if the project id is invalid
      * @memberof EkoPlayer
@@ -184,12 +193,6 @@ class EkoPlayer {
             }
         }
 
-        if (typeof options.frameTitle === 'string') {
-            this._iframe.setAttribute('title', options.frameTitle);
-        } else {
-            throw new Error(`Received type ${typeof options.frameTitle}. Expected string.`);
-        }
-
         // Get the final embed params object
         // (merging params with selected page params to forward)
         const embedParams = Object.assign(
@@ -230,6 +233,19 @@ class EkoPlayer {
                 }
             });
         }
+
+
+        // Handle iframe attributes
+        Object.keys(options.iframeAttributes)
+            .forEach(attribute => {
+                if (typeof options.iframeAttributes[attribute] === 'string') {
+                    this._iframe.setAttribute(attribute, options.iframeAttributes[attribute]);
+                } else {
+                    throw new Error(`iframe attribute: ${attribute},
+                    Received type ${typeof options.iframeAttributes[attribute]}. Expected string.`);
+                }
+            });
+
 
         // Finally, let's set the iframe's src to begin loading the project
         this._iframe.setAttribute(
