@@ -42,8 +42,9 @@ Will load and display an eko project. The EkoPlayerView will display the loading
 | options.params | `Object` | A dictionary of embed params that will affect the delivery. Default includes `{autoplay: true}`.|
 | options.events | `String[]` | A list of events that should be forwarded. |
 | options.cover | `Element, string, function` | An element or the query selector string for a loading cover. When loading happens a “eko-player-loading” class will be added to the element. When loading finishes, the “eko-player-loading” class will be removed. If a function is passed, it will be invoked with a single string argument (state) whenever the state changes. The possible state values are "loading" (cover should be shown) and "loaded" (cover should be hidden). If no cover is provided, the default eko loading cover will be shown. |
-| options.frameTitle | `String` | The title for the iframe. |
+| options.iframeAttributes | `Object` | standard attributes of iframe HTML element. |
 | options.pageParams | `String[]` | Any query params from the page url that should be forwarded to the iframe. Can supply regex and strings. By default, the following query params will automatically be forwarded: autoplay, debug, utm_*, headnodeid. |
+| options.useDeliveryService | `Boolean` | use delivery service url as iframe src. |
 
 **Example**
 
@@ -57,7 +58,7 @@ ekoPlayer.load('AWLLK1', {
     },
     events: ['nodestart', 'nodeend', 'playing', 'pause'],
     cover: '#myCoverId',
-    frameTitle: 'My Eko Player',
+    iframeAttributes:{ title: 'My Eko Player' },
     pageParams: ['myCustomQueryParam']
 });
 ```
