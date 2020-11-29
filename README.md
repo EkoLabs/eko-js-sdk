@@ -58,7 +58,7 @@ ekoPlayer.load('AWLLK1', {
     },
     events: ['nodestart', 'nodeend', 'playing', 'pause'],
     cover: '#myCoverId',
-    iframeAttributes:{ title: 'My Eko Player' },
+    iframeAttributes: { title: 'My Eko Player' },
     pageParams: ['myCustomQueryParam']
 });
 ```
