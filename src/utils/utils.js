@@ -87,15 +87,6 @@ function buildEmbedUrl(projectId, embedParamsObj, env) {
 function buildIFrame(id) {
     let iframe = document.createElement('iframe');
     iframe.setAttribute('id', id);
-    iframe.setAttribute('title', 'Eko Player');
-    iframe.setAttribute('style', 'position: absolute; width: 100%; height: 100%; border: 0;');
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('allow', 'autoplay *; fullscreen *');
-
-    // These are currently experimental attributes, so they may not have any effect on some browsers
-    iframe.setAttribute('importance', 'high');
-    iframe.setAttribute('loading', 'eager');
-
     return iframe;
 }
 
