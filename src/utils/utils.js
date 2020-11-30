@@ -116,6 +116,19 @@ function isWebAudioSupported() {
     );
 }
 
+function setElAttributes(el, attributes) {
+    Object.keys(attributes)
+        .forEach(attributeKey => {
+            const attributeValue = attributes[attributeKey];
+            if (typeof attributeValue === 'string') {
+                el.setAttribute(attributeKey, attributeValue);
+            } else {
+                throw new Error(`${el} attribute: ${attributeKey},
+                Received type ${typeof attributeValue}. Expected string.`);
+            }
+        });
+}
+
 export default {
     pick,
     parseQueryParams,
@@ -127,4 +140,5 @@ export default {
     uniq,
     isES6Supported,
     isWebAudioSupported,
+    setElAttributes
 };

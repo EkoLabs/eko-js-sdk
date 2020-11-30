@@ -118,7 +118,7 @@ describe('utils', () => {
                     'staging',
                     true
                 )
-            ).toEqual('https://stagingembed.eko.com/?id=aBcDe&autoplay=true&events=canplay%2Cplaying')
+            ).toEqual('https://stagingembed.eko.com/?id=aBcDe&autoplay=true&events=canplay%2Cplaying');
         });
     });
 
@@ -140,6 +140,29 @@ describe('utils', () => {
         it('Returns a boolean', () => {
             // Will return true on jest env, due to the beforeAll() hook
             expect(utils.isWebAudioSupported()).toBe(true);
+        });
+    });
+
+    describe('setElAttributes()', () => {
+        it('Returns el with attributes ', () => {
+            const iframe = document.createElement('iframe');
+            const attributes = {
+                title: 'test',
+                allowfullscreen: '',
+                allow: 'autoplay *; fullscreen *'
+            };
+            utils.setElAttributes(iframe, attributes);
+            expect(iframe.getAttribute('title')).toEqual('test');
+            expect(iframe.getAttribute('allowfullscreen')).toEqual('');
+            expect(iframe.getAttribute('allow')).toEqual('autoplay *; fullscreen *');
+        });
+
+        it('throw error - expect string as attribute value ', () => {
+            const iframe = document.createElement('iframe');
+            const attributes = { title: 1 };
+            expect(() => {
+                utils.setElAttributes(iframe, attributes);
+            }).toThrow();
         });
     });
 });

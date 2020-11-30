@@ -235,18 +235,8 @@ class EkoPlayer {
             });
         }
 
-
         // Handle iframe attributes
-        Object.keys(options.iframeAttributes)
-            .forEach(attribute => {
-                if (typeof options.iframeAttributes[attribute] === 'string') {
-                    this._iframe.setAttribute(attribute, options.iframeAttributes[attribute]);
-                } else {
-                    throw new Error(`iframe attribute: ${attribute},
-                        Received type ${typeof options.iframeAttributes[attribute]}. Expected string.`);
-                }
-            });
-
+        utils.setElAttributes(this._iframe, options.iframeAttributes);
 
         // Finally, let's set the iframe's src to begin loading the project
         this._iframe.setAttribute(
