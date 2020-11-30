@@ -11,14 +11,6 @@ describe('utils', () => {
             expect(frame).not.toBe(undefined);
             expect(frame.id).toEqual('ekoframe-1');
         });
-        it('sets the style of the iframe', () => {
-            let frame = utils.buildIFrame('ekoframe-1');
-            expect(frame).not.toBe(undefined);
-            expect(frame.style.width).toEqual('100%');
-            expect(frame.style.height).toEqual('100%');
-            expect(frame.style.border).toEqual('0px');
-            expect(frame.style.position).toEqual('absolute');
-        });
     });
 
     describe('isEkoDomain()', () => {
@@ -128,6 +120,29 @@ describe('utils', () => {
         it('Returns a boolean', () => {
             // Will return true on jest env, due to the beforeAll() hook
             expect(utils.isWebAudioSupported()).toBe(true);
+        });
+    });
+
+    describe('setElAttributes()', () => {
+        it('Returns el with attributes ', () => {
+            const iframe = document.createElement('iframe');
+            const attributes = {
+                title: 'test',
+                allowfullscreen: '',
+                allow: 'autoplay *; fullscreen *'
+            };
+            utils.setElAttributes(iframe, attributes);
+            expect(iframe.getAttribute('title')).toEqual('test');
+            expect(iframe.getAttribute('allowfullscreen')).toEqual('');
+            expect(iframe.getAttribute('allow')).toEqual('autoplay *; fullscreen *');
+        });
+
+        it('throw error - expect string as attribute value ', () => {
+            const iframe = document.createElement('iframe');
+            const attributes = { title: 1 };
+            expect(() => {
+                utils.setElAttributes(iframe, attributes);
+            }).toThrow();
         });
     });
 });

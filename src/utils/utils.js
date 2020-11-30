@@ -87,15 +87,6 @@ function buildEmbedUrl(projectId, embedParamsObj, env) {
 function buildIFrame(id) {
     let iframe = document.createElement('iframe');
     iframe.setAttribute('id', id);
-    iframe.setAttribute('title', 'Eko Player');
-    iframe.setAttribute('style', 'position: absolute; width: 100%; height: 100%; border: 0;');
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('allow', 'autoplay *; fullscreen *');
-
-    // These are currently experimental attributes, so they may not have any effect on some browsers
-    iframe.setAttribute('importance', 'high');
-    iframe.setAttribute('loading', 'eager');
-
     return iframe;
 }
 
@@ -123,6 +114,19 @@ function isWebAudioSupported() {
     );
 }
 
+function setElAttributes(el, attributes) {
+    Object.keys(attributes)
+        .forEach(attributeKey => {
+            const attributeValue = attributes[attributeKey];
+            if (typeof attributeValue === 'string') {
+                el.setAttribute(attributeKey, attributeValue);
+            } else {
+                throw new Error(`${el} attribute: ${attributeKey},
+                Received type ${typeof attributeValue}. Expected string.`);
+            }
+        });
+}
+
 export default {
     pick,
     parseQueryParams,
@@ -134,4 +138,5 @@ export default {
     uniq,
     isES6Supported,
     isWebAudioSupported,
+    setElAttributes
 };
