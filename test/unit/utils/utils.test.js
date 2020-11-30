@@ -122,4 +122,27 @@ describe('utils', () => {
             expect(utils.isWebAudioSupported()).toBe(true);
         });
     });
+
+    describe('setElAttributes()', () => {
+        it('Returns el with attributes ', () => {
+            const iframe = document.createElement('iframe');
+            const attributes = {
+                title: 'test',
+                allowfullscreen: '',
+                allow: 'autoplay *; fullscreen *'
+            };
+            utils.setElAttributes(iframe, attributes);
+            expect(iframe.getAttribute('title')).toEqual('test');
+            expect(iframe.getAttribute('allowfullscreen')).toEqual('');
+            expect(iframe.getAttribute('allow')).toEqual('autoplay *; fullscreen *');
+        });
+
+        it('throw error - expect string as attribute value ', () => {
+            const iframe = document.createElement('iframe');
+            const attributes = { title: 1 };
+            expect(() => {
+                utils.setElAttributes(iframe, attributes);
+            }).toThrow();
+        });
+    });
 });
