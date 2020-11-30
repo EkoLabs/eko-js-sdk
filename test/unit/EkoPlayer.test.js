@@ -49,25 +49,33 @@ describe('EkoPlayer', () => {
             ekoplayer.load('AWLLK1');
             expect(iframe.src.includes('https://eko.com/v/AWLLK1')).toBe(true);
         });
-        it('sets the iframe styles ', () => {
+        it('supports function as the "cover" option', (done) => {
             jest.spyOn(utils, 'getContainer').mockReturnValue({ appendChild: () => {} });
-            let iframe = document.createElement('iframe');
-            jest.spyOn(utils, 'buildIFrame').mockReturnValue(iframe);
-            let ekoplayer = new EkoPlayer('testelement');
-            ekoplayer.load('AWLLK1');
-            expect(iframe).not.toBe(undefined);
-            expect(iframe.style.width).toEqual('100%');
-            expect(iframe.style.height).toEqual('100%');
-            expect(iframe.style.border).toEqual('0px');
-            expect(iframe.style.position).toEqual('absolute');
-        });
-        it('supports function as the "cover" option', () => {
+            jest.spyOn(utils, 'isEkoDomain').mockReturnValue(true);
             const coverCallback = jest.fn();
             let iframe = document.createElement('iframe');
             jest.spyOn(utils, 'buildIFrame').mockReturnValue(iframe);
             let ekoplayer = new EkoPlayer('testelement');
             ekoplayer.load('AWLLK1', { cover: coverCallback });
-            expect(coverCallback).toHaveBeenCalledWith('loading');
+            expect(coverCallback).toHaveBeenLastCalledWith('loading');
+
+            ekoplayer.once('canplay', () => {
+                expect(coverCallback).toHaveBeenLastCalledWith('loaded', { buffered: 2, isAutoplayExpected: true });
+            });
+            ekoplayer.once('playing', () => {
+                expect(coverCallback).toHaveBeenLastCalledWith('started');
+                done();
+            });
+
+            window.postMessage({
+                type: 'eko.canplay',
+                args: [2, true],
+                embedId: iframe.id
+            }, '*');
+            window.postMessage({
+                type: 'eko.playing',
+                embedId: iframe.id
+            }, '*');
         });
         it('sets the iframe source to use Delivery serivce', () => {
             jest.spyOn(utils, 'getContainer').mockReturnValue({ appendChild: () => {} });

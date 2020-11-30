@@ -51,6 +51,19 @@ const EVENT_TO_EMBED_PARAMS_MAP = {
     }
 };
 
+// All player states (used for cover functionality)
+const COVER_STATES = {
+    LOADING: 'loading',
+    LOADED: 'loaded',
+    STARTED: 'started',
+};
+
+const COVER_STATE_CLASSES = {
+    LOADING: 'eko-player-loading',
+    LOADED: 'eko-player-loaded',
+    STARTED: 'eko-player-started',
+};
+
 let instanceCount = 0;
 let isEkoSupported = null;
 
@@ -194,21 +207,30 @@ class EkoPlayer {
 
         // Handle cover logic
         if (coverDomEl || coverCallback) {
+            // LOADING
             if (coverDomEl) {
-                coverDomEl.classList.add('eko-player-loading');
+                coverDomEl.classList.add(COVER_STATE_CLASSES.LOADING);
             } else if (coverCallback) {
-                coverCallback('loading');
+                coverCallback(COVER_STATES.LOADING);
             }
 
-            const autoplay = typeof embedParams.autoplay === 'boolean' ?
-                embedParams.autoplay :
-                embedParams.autoplay !== 'false';
-
-            this.once(autoplay ? 'playing' : 'canplay', () => {
+            // LOADED
+            this.once('canplay', (buffered, isAutoplayExpected) => {
                 if (coverDomEl) {
-                    coverDomEl.classList.remove('eko-player-loading');
+                    coverDomEl.classList.remove(COVER_STATE_CLASSES.LOADING);
+                    coverDomEl.classList.add(COVER_STATE_CLASSES.LOADED);
                 } else if (coverCallback) {
-                    coverCallback('loaded');
+                    coverCallback(COVER_STATES.LOADED, { buffered, isAutoplayExpected });
+                }
+            });
+
+            // STARTED
+            this.once('playing', () => {
+                if (coverDomEl) {
+                    coverDomEl.classList.remove(COVER_STATE_CLASSES.LOADED);
+                    coverDomEl.classList.add(COVER_STATE_CLASSES.STARTED);
+                } else if (coverCallback) {
+                    coverCallback(COVER_STATES.STARTED);
                 }
             });
         }
