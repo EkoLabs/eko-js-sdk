@@ -1,4 +1,4 @@
-import utils from '../../../src/utils/utils';
+import utils from '../../../src/lib/utils';
 
 describe('utils', () => {
     beforeAll(() => {

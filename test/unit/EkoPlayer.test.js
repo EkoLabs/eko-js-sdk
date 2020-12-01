@@ -1,5 +1,5 @@
 import EkoPlayer from '../../src/EkoPlayer';
-import utils from '../../src/utils/utils';
+import utils from '../../src/lib/utils';
 
 describe('EkoPlayer', () => {
     beforeAll(() => {

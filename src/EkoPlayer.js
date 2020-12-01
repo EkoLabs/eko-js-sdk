@@ -1,7 +1,7 @@
 import deepmerge from 'deepmerge';
 import EventEmitter from 'eventemitter3';
 
-import utils from './utils/utils';
+import utils from './lib/utils';
 
 const DEFAULT_OPTIONS = {
     env: '',
