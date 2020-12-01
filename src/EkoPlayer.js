@@ -1,6 +1,7 @@
 import deepmerge from 'deepmerge';
 import EventEmitter from 'eventemitter3';
 
+import coverFactory from './lib/cover/coverFactory';
 import utils from './lib/utils';
 
 const DEFAULT_OPTIONS = {
@@ -55,12 +56,6 @@ const COVER_STATES = {
     LOADING: 'loading',
     LOADED: 'loaded',
     STARTED: 'started',
-};
-
-const COVER_STATE_CLASSES = {
-    LOADING: 'eko-player-loading',
-    LOADED: 'eko-player-loaded',
-    STARTED: 'eko-player-started',
 };
 
 let instanceCount = 0;
@@ -175,22 +170,9 @@ class EkoPlayer {
         }
         /* eslint-enable new-cap */
 
-        let coverDomEl;
-        let coverCallback;
-
-        if (options.cover) {
-            // Handle cover callback
-            if (typeof options.cover === 'function') {
-                coverCallback = options.cover;
-            } else {
-                // Resolve the cover DOM element if given
-                coverDomEl = utils.getContainer(options.cover);
-            }
-
-            // Custom cover was given, let's add a cover=false embed param to disable default cover.
-            if (!options.params.hasOwnProperty('cover')) {
-                options.params.cover = false;
-            }
+        // Custom cover was given, let's add a cover=false embed param to disable default cover.
+        if (options.cover && (!options.params.hasOwnProperty('cover'))) {
+            options.params.cover = false;
         }
 
         // Get the final embed params object
@@ -204,35 +186,20 @@ class EkoPlayer {
             )
         );
 
-        // Handle cover logic
-        if (coverDomEl || coverCallback) {
-            // LOADING
-            if (coverDomEl) {
-                coverDomEl.classList.add(COVER_STATE_CLASSES.LOADING);
-            } else if (coverCallback) {
-                coverCallback(COVER_STATES.LOADING);
-            }
+        let cover = coverFactory.create(options.cover);
 
-            // LOADED
-            this.once('canplay', (buffered, isAutoplayExpected) => {
-                if (coverDomEl) {
-                    coverDomEl.classList.remove(COVER_STATE_CLASSES.LOADING);
-                    coverDomEl.classList.add(COVER_STATE_CLASSES.LOADED);
-                } else if (coverCallback) {
-                    coverCallback(COVER_STATES.LOADED, { buffered, isAutoplayExpected });
-                }
-            });
+        // LOADING
+        cover.setState(COVER_STATES.LOADING);
 
-            // STARTED
-            this.once('playing', () => {
-                if (coverDomEl) {
-                    coverDomEl.classList.remove(COVER_STATE_CLASSES.LOADED);
-                    coverDomEl.classList.add(COVER_STATE_CLASSES.STARTED);
-                } else if (coverCallback) {
-                    coverCallback(COVER_STATES.STARTED);
-                }
-            });
-        }
+        // LOADED
+        this.once('canplay', (buffered, isAutoplayExpected) => {
+            cover.setState(COVER_STATES.LOADED, { buffered, isAutoplayExpected });
+        });
+
+        // STARTED
+        this.once('playing', () => {
+            cover.setState(COVER_STATES.STARTED);
+        });
 
         // Handle iframe attributes
         utils.setElAttributes(this._iframe, options.iframeAttributes);
