@@ -395,6 +395,7 @@
         "multiline-ternary": ["warn", "always-multiline"],
 
         // https://eslint.org/docs/rules/new-cap
+        // Eyal avital - i dont like this rule
         "new-cap": ["warn", { "newIsCap": true, "capIsNew": true, "properties": true }],
 
         // https://eslint.org/docs/rules/new-parens

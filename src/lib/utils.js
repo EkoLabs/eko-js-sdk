@@ -50,9 +50,7 @@ function stringifyQueryParams(queryObj) {
     return searchParams.toString();
 }
 
-function isEkoDomain(domain) {
-    return /https?:\/\/(.*?\.)?eko.com/.test(domain);
-}
+
 
 function getContainer(el) {
     let retVal = null;
