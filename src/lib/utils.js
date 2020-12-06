@@ -50,8 +50,6 @@ function stringifyQueryParams(queryObj) {
     return searchParams.toString();
 }
 
-
-
 function getContainer(el) {
     let retVal = null;
 
@@ -131,7 +129,6 @@ export default {
     stringifyQueryParams,
     buildEmbedUrl,
     buildIFrame,
-    isEkoDomain,
     getContainer,
     uniq,
     isES6Supported,

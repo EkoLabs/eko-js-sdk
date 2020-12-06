@@ -73,7 +73,7 @@ class ekoPlayerPublicApi {
             {
                 params: {
                     embedapi: '1.0',
-                    embedid: this._iframe.id
+                    embedid: this.iframe.id
                 }
             }
         ]);

@@ -11,4 +11,4 @@ function create(embedapiVersion, iframe, eventEmitter) {
     }
 }
 
-export default create;
+export default { create };
