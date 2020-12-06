@@ -18,10 +18,6 @@ class PrivateApi {
         window.addEventListeners('message', this.onEkoEventFired);
     }
 
-    trigger(eventName, ...args) {
-        this.eventEmitter.emit(eventName, ...args);
-    }
-
     onEkoEventFired(event) {
         if (!ekoPlatform.isEkoDomain(event.origin)) {
             return;
@@ -30,11 +26,11 @@ class PrivateApi {
         const msg = event.data;
 
         // Do nothing if this message was not intended for us
-        if (!msg.type || msg.embedId !== this.iframe.id) {
+        if (!msg.event || msg.embedid !== this.iframe.id || msg.embedapi !== '2.0') {
             return;
         }
 
-        this.trigger(msg.type.replace(/^eko./, ''), msg.args);
+        this.eventEmitter.emit(msg.event, msg.args, msg.embedid, msg.embedapi);
     }
 }
 
