@@ -1,10 +1,8 @@
 import EventEmitter from 'eventemitter3';
 
-
 import ekoPlayerPublicApiFactory from './lib/ekoPlayerPublicApi/factory';
 import ekoPlayerPrivateApiFactory from './lib/ekoPlayerPrivateApi/factory';
 import utils from './lib/utils';
-
 
 let instanceCount = 0;
 let isEkoSupported = null;
@@ -59,10 +57,10 @@ class EkoPlayer {
     static isSupported() {
         if (isEkoSupported === null) {
             isEkoSupported =
+                typeof window !== 'undefined' &&
                 utils.isES6Supported() &&
                 utils.isWebAudioSupported();
         }
-
         return isEkoSupported;
     }
 
