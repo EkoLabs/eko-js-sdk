@@ -40,15 +40,6 @@ function parseQueryParams(queryStr) {
     return retVal;
 }
 
-function stringifyQueryParams(queryObj) {
-    let searchParams = new URLSearchParams();
-
-    Object.keys(queryObj).forEach((key) => {
-        searchParams.set(key, queryObj[key]);
-    });
-
-    return searchParams.toString();
-}
 
 function getContainer(el) {
     let retVal = null;
@@ -76,9 +67,6 @@ function getContainer(el) {
     return retVal;
 }
 
-function buildEmbedUrl(projectId, embedParamsObj, env) {
-    return `https://${env ? (env + '.') : ''}eko.com/v/${projectId}/embed?${stringifyQueryParams(embedParamsObj)}`;
-}
 
 function buildIFrame(id) {
     let iframe = document.createElement('iframe');
@@ -126,8 +114,6 @@ function setElAttributes(el, attributes) {
 export default {
     pick,
     parseQueryParams,
-    stringifyQueryParams,
-    buildEmbedUrl,
     buildIFrame,
     getContainer,
     uniq,

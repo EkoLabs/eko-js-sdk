@@ -2,12 +2,12 @@
 import v2 from './v2';
 import v1 from './v1';
 
-function create(embedapiVersion) {
+function create(embedapiVersion, iframe, eventEmitter) {
     switch (embedapiVersion) {
         case '2.0':
-            return v2;
+            return new v2(iframe, eventEmitter);
         default:
-            return v1;
+            return new v1(iframe, eventEmitter);
     }
 }
 

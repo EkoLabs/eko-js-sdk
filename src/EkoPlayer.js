@@ -2,11 +2,18 @@ import EventEmitter from 'eventemitter3';
 
 import ekoPlayerPublicApiFactory from './lib/ekoPlayerPublicApi/factory';
 import ekoPlayerPrivateApiFactory from './lib/ekoPlayerPrivateApi/factory';
+import coverFactory from './lib/cover/coverFactory';
 import utils from './lib/utils';
+
+// All player states (used for cover functionality)
+const COVER_STATES = {
+    LOADING: 'loading',
+    LOADED: 'loaded',
+    STARTED: 'started',
+};
 
 let instanceCount = 0;
 let isEkoSupported = null;
-
 class EkoPlayer {
     /**
      * Creates an instance of EkoPlayer.
@@ -83,6 +90,21 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     load(projectId, options) {
+        let cover = coverFactory.create(options.cover);
+
+        // LOADING
+        cover.setState(COVER_STATES.LOADING);
+
+        // LOADED
+        this.once('canplay', (buffered, isAutoplayExpected) => {
+            cover.setState(COVER_STATES.LOADED, { buffered, isAutoplayExpected });
+        });
+
+        // STARTED
+        this.once('playing', () => {
+            cover.setState(COVER_STATES.STARTED);
+        });
+
         this.ekoPlayerPublicApi.load(projectId, options);
     }
 

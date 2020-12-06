@@ -1,7 +1,5 @@
 import deepmerge from 'deepmerge';
-
-import coverFactory from '../cover/coverFactory';
-
+import ekoPlatfrom from '../ekoPlatfrom';
 import utils from '../utils';
 
 const DEFAULT_OPTIONS = {
@@ -51,18 +49,15 @@ const EVENT_TO_EMBED_PARAMS_MAP = {
     }
 };
 
-// All player states (used for cover functionality)
-const COVER_STATES = {
-    LOADING: 'loading',
-    LOADED: 'loaded',
-    STARTED: 'started',
-};
-
-
 class ekoPlayerPublicApi {
     constructor(iframe, eventEmitter) {
         this.iframe = iframe;
         this.eventEmitter = eventEmitter;
+
+        return {
+            load: this.load.bind(this),
+            invoke: this.invoke.bind(this)
+        };
     }
 
     load(projectId, options) {
@@ -117,28 +112,13 @@ class ekoPlayerPublicApi {
             )
         );
 
-        let cover = coverFactory.create(options.cover);
-
-        // LOADING
-        cover.setState(COVER_STATES.LOADING);
-
-        // LOADED
-        this.once('canplay', (buffered, isAutoplayExpected) => {
-            cover.setState(COVER_STATES.LOADED, { buffered, isAutoplayExpected });
-        });
-
-        // STARTED
-        this.once('playing', () => {
-            cover.setState(COVER_STATES.STARTED);
-        });
-
         // Handle iframe attributes
-        utils.setElAttributes(this._iframe, options.iframeAttributes);
+        utils.setElAttributes(this.iframe, options.iframeAttributes);
 
         // Finally, let's set the iframe's src to begin loading the project
-        this._iframe.setAttribute(
+        this.iframe.setAttribute(
             'src',
-            this.embedapi.buildEmbedUrl(projectId, embedParams, options.env)
+            ekoPlatfrom.buildBalooUrl(projectId, embedParams, options.env)
         );
     }
 

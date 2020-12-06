@@ -1,4 +1,4 @@
-import ekoPlatform from './../utils';
+import ekoPlatform from './../ekoPlatfrom';
 
 /*
 * Private function. Will emit an event and pass its arguments.
@@ -15,7 +15,7 @@ class PrivateApi {
     }
 
     addIframeListeners() {
-        window.addEventListeners('message', this.onEkoEventFired);
+        window.addEventListener('message', this.onEkoEventFired);
     }
 
     trigger(eventName, ...args) {
