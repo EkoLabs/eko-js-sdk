@@ -1,6 +1,6 @@
-import CallbackCover from './covers/Callback';
-import DomElCover from './covers/DomEl';
-import NullCover from './covers/Null';
+import CallbackCover from './types/Callback';
+import DomElCover from './types/DomEl';
+import NullCover from './types/Null';
 
 function create(cover) {
     switch (typeof cover) {

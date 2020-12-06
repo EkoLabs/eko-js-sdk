@@ -47,8 +47,8 @@ class EkoPlayer {
         return {
             play: this.play.bind(this),
             pause: this.pause.bind(this),
-            load: ekoPlayerPublicApi.load,
-            invoke: ekoPlayerPublicApi.invoke,
+            load: ekoPlayerPublicApi.load.bind(this),
+            invoke: ekoPlayerPublicApi.invoke.bind(this),
             on: this.on.bind(this),
             once: this.once.bind(this),
             off: this.off.bind(this)
