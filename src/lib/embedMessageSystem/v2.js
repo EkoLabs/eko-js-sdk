@@ -1,17 +1,33 @@
-import ekoPlatform from './../utils';
+import EventEmitter from 'eventemitter3';
+import ekoPlatform from '../ekoPlatfrom';
 
 /*
 * Private function. Will emit an event and pass its arguments.
 */
 
-class PrivateApi {
-    constructor(iframe, eventEmitter) {
+class EmbedEventSystem {
+    constructor(iframe) {
         this.iframe = iframe;
-        this.eventEmitter = eventEmitter;
+        this.eventEmitter = new EventEmitter();
+        this.addIframeListeners();
 
         return {
-            addIframeListeners: this.addIframeListeners.bind(this)
+            on: this.on.bind(this),
+            off: this.off.bind(this),
+            once: this.once.bind(this)
         };
+    }
+
+    on(eventName, callback) {
+        this.eventEmitter.on(eventName, callback);
+    }
+
+    off(eventName, callback) {
+        this.eventEmitter.off(eventName, callback);
+    }
+
+    once(eventName, callback) {
+        this.eventEmitter.once(eventName, callback);
     }
 
     addIframeListeners() {
@@ -34,5 +50,5 @@ class PrivateApi {
     }
 }
 
-export default PrivateApi;
+export default EmbedEventSystem;
 

@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 import deepmerge from 'deepmerge';
 import ekoPlatfrom from '../ekoPlatfrom';
 import utils from '../utils';
@@ -49,10 +50,9 @@ const EVENT_TO_EMBED_PARAMS_MAP = {
     }
 };
 
-class ekoPlayerPublicApi {
-    constructor(iframe, eventEmitter) {
+class EkoPlayerApi {
+    constructor(iframe) {
         this.iframe = iframe;
-        this.eventEmitter = eventEmitter;
 
         return {
             load: this.load.bind(this),
@@ -67,7 +67,8 @@ class ekoPlayerPublicApi {
             options || {},
             {
                 params: {
-                    embedapi: '1.0',
+                    id: projectId,
+                    embedapi: '2.0',
                     embedid: this.iframe.id
                 }
             }
@@ -90,15 +91,8 @@ class ekoPlayerPublicApi {
         options.params.events = options.events.join(',');
 
         // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
-        /* eslint-disable new-cap */
         if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
             options.params.eauid = window.EkoAnalytics('getUid');
-        }
-        /* eslint-enable new-cap */
-
-        // Custom cover was given, let's add a cover=false embed param to disable default cover.
-        if (options.cover && (!options.params.hasOwnProperty('cover'))) {
-            options.params.cover = false;
         }
 
         // Get the final embed params object
@@ -118,7 +112,7 @@ class ekoPlayerPublicApi {
         // Finally, let's set the iframe's src to begin loading the project
         this.iframe.setAttribute(
             'src',
-            ekoPlatfrom.buildBalooUrl(projectId, embedParams, options.env)
+            ekoPlatfrom.buildDeliveryUrl(embedParams, options.env)
         );
     }
 
@@ -128,7 +122,8 @@ class ekoPlayerPublicApi {
         }
 
         const action = {
-            type: `eko.${method}`,
+            target: 'embedapi',
+            playerProperty: `${method}`,
             args: args
         };
 
@@ -136,4 +131,4 @@ class ekoPlayerPublicApi {
     }
 }
 
-export default ekoPlayerPublicApi;
+export default EkoPlayerApi;

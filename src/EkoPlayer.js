@@ -1,7 +1,5 @@
-import EventEmitter from 'eventemitter3';
-
-import ekoPlayerPublicApiFactory from './lib/ekoPlayerPublicApi/factory';
-import ekoPlayerPrivateApiFactory from './lib/ekoPlayerPrivateApi/factory';
+import ekoPlayerApiFactory from './lib/ekoPlayerApi/factory';
+import embedMessageSystemFactory from './lib/embedMessageSystem/factory';
 import coverFactory from './lib/cover/coverFactory';
 import utils from './lib/utils';
 
@@ -30,26 +28,21 @@ class EkoPlayer {
 
         // Initialize private members
         const iframe = utils.buildIFrame(`ekoembed-${++instanceCount}`);
-        const eventEmitter = new EventEmitter();
-        this.eventEmitter = eventEmitter;
 
-        const ekoPlayerPrivateApi = ekoPlayerPrivateApiFactory.create(embedapi, iframe, eventEmitter);
-        ekoPlayerPrivateApi.addIframeListeners();
-
-        const ekoPlayerPublicApi = ekoPlayerPublicApiFactory.create(embedapi, iframe, eventEmitter);
-        this.ekoPlayerPublicApi = ekoPlayerPublicApi;
+        embedapi = embedapi || '1.0';
+        this.embedMessageSystem = embedMessageSystemFactory.create(iframe, embedapi);
+        this.ekoPlayerApi = ekoPlayerApiFactory.create(iframe, embedapi);
 
         // TODO: not here!!!! yes ?? no ??
         // Append our iframe to provided DOM element/container
         utils.getContainer(el).appendChild(iframe);
 
         // Return our public API from the constructor
-
         return {
             play: this.play.bind(this),
             pause: this.pause.bind(this),
-            load: ekoPlayerPublicApi.load.bind(this),
-            invoke: ekoPlayerPublicApi.invoke.bind(this),
+            load: this.load.bind(this),
+            invoke: this.invoke.bind(this),
             on: this.on.bind(this),
             once: this.once.bind(this),
             off: this.off.bind(this)
@@ -106,7 +99,7 @@ class EkoPlayer {
             cover.setState(COVER_STATES.STARTED);
         });
 
-        this.ekoPlayerPublicApi.load(projectId, options);
+        this.ekoPlayerApi.load(projectId, options);
     }
 
     /**
@@ -115,9 +108,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     play() {
-        this.ekoPlayerPublicApi.invoke('play', []);
-
-        // This.invoke('play');
+        this.invoke('play', []);
     }
 
     /**
@@ -126,7 +117,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     pause() {
-        this.ekoPlayerPublicApi.invoke('pause', []);
+        this.invoke('pause', []);
     }
 
     /**
@@ -137,7 +128,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     invoke(method, ...args) {
-        this.ekoPlayerPublicApi.invoke(method, args);
+        this.ekoPlayerApi.invoke(method, args);
     }
 
     /**
@@ -149,7 +140,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     on(eventName, callback) {
-        this.eventEmitter.on(eventName, callback);
+        this.embedMessageSystem.on(eventName, callback);
     }
 
     /**
@@ -161,7 +152,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     off(eventName, callback) {
-        this.eventEmitter.off(eventName, callback);
+        this.embedMessageSystem.off(eventName, callback);
     }
 
     /**
@@ -174,7 +165,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     once(eventName, callback) {
-        this.eventEmitter.once(eventName, callback);
+        this.embedMessageSystem.once(eventName, callback);
     }
 }
 
