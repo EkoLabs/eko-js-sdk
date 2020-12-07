@@ -31,6 +31,7 @@ class EkoPlayer {
         // Initialize private members
         const iframe = utils.buildIFrame(`ekoembed-${++instanceCount}`);
         const eventEmitter = new EventEmitter();
+        this.eventEmitter = eventEmitter;
 
         const ekoPlayerPrivateApi = ekoPlayerPrivateApiFactory.create(embedapi, iframe, eventEmitter);
         ekoPlayerPrivateApi.addIframeListeners();
@@ -148,7 +149,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     on(eventName, callback) {
-        this._eventEmitter.on(eventName, callback);
+        this.eventEmitter.on(eventName, callback);
     }
 
     /**
@@ -160,7 +161,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     off(eventName, callback) {
-        this._eventEmitter.off(eventName, callback);
+        this.eventEmitter.off(eventName, callback);
     }
 
     /**
@@ -173,7 +174,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     once(eventName, callback) {
-        this._eventEmitter.once(eventName, callback);
+        this.eventEmitter.once(eventName, callback);
     }
 }
 
