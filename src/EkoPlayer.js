@@ -1,7 +1,58 @@
-import ekoPlayerApiFactory from './lib/ekoPlayerApi/factory';
-import embedMessageSystemFactory from './lib/embedMessageSystem/factory';
+/* eslint-disable new-cap */
+import ekoDeliveryFactory from './lib/ekoDelivery/factory';
 import coverFactory from './lib/cover/coverFactory';
+import iframeCreator from './lib/iframeCreator';
+
+import deepmerge from 'deepmerge';
 import utils from './lib/utils';
+import { parseQueryParams } from './lib/queryParamsUtils';
+
+const DEFAULT_OPTIONS = {
+    env: '',
+    iframeAttributes: {
+        title: 'Eko Player',
+        style: 'position: absolute; width: 100%; height: 100%; border: 0;',
+        allowfullscreen: '',
+        allow: 'autoplay *; fullscreen *',
+
+        // These are currently experimental attributes, so they may not have any effect on some browsers
+        importance: 'high',
+        loading: 'eager'
+    },
+    params: {
+        autoplay: true
+    },
+    pageParams: [
+        'autoplay',
+        'debug',
+        /^utm_.*$/,
+        'headnodeid',
+        'clearcheckpoints',
+        'profiler',
+        'autoprofiler',
+        'hidePauseOverlay',
+        'studiorevision',
+        'forceTech',
+    ],
+
+    // The default events are needed for the SDK itself.
+    // Any additional events will be concatenated.
+    events: [
+        'canplay',
+        'playing'
+    ]
+};
+
+// Listening to some events requires embed params to be added to the iframe's src.
+// This is a map of such events to their respective required embed params.
+const EVENT_TO_EMBED_PARAMS_MAP = {
+    'urls.intent': {
+        urlsmode: 'proxy'
+    },
+    'share.intent': {
+        sharemode: 'proxy'
+    }
+};
 
 // All player states (used for cover functionality)
 const COVER_STATES = {
@@ -10,7 +61,6 @@ const COVER_STATES = {
     STARTED: 'started',
 };
 
-let instanceCount = 0;
 let isEkoSupported = null;
 class EkoPlayer {
     /**
@@ -26,14 +76,11 @@ class EkoPlayer {
             throw new Error('Cannot initialize EkoPlayer instance as Eko videos are not supported on current environment.'); // eslint-disable-line max-len
         }
 
-        // Initialize private members
-        const iframe = utils.buildIFrame(`ekoembed-${++instanceCount}`);
+        const iframe = iframeCreator.create();
 
         embedapi = embedapi || '1.0';
-        this.embedMessageSystem = embedMessageSystemFactory.create(iframe, embedapi);
-        this.ekoPlayerApi = ekoPlayerApiFactory.create(iframe, embedapi);
+        this.ekoDelivery = ekoDeliveryFactory.create(iframe, embedapi);
 
-        // TODO: not here!!!! yes ?? no ??
         // Append our iframe to provided DOM element/container
         utils.getContainer(el).appendChild(iframe);
 
@@ -84,6 +131,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     load(projectId, options) {
+        // Handle cover
         let cover = coverFactory.create(options.cover);
 
         // LOADING
@@ -99,7 +147,32 @@ class EkoPlayer {
             cover.setState(COVER_STATES.STARTED);
         });
 
-        this.ekoPlayerApi.load(projectId, options);
+        options = deepmerge.all([DEFAULT_OPTIONS, (options || {})]);
+
+        options.events = utils.uniq(options.events);
+        options.pageParams = utils.uniq(options.pageParams);
+
+        // Add embed params that are required for some events,
+        // For example, if the "urls.intent" event is included, we must add the "urlsmode=proxy" embed param.
+        Object.keys(EVENT_TO_EMBED_PARAMS_MAP)
+            .forEach(event => {
+                if (options.events.includes(event)) {
+                    options.params = Object.assign(options.params, EVENT_TO_EMBED_PARAMS_MAP[event]);
+                }
+            });
+
+        // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
+        if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
+            options.params.eauid = window.EkoAnalytics('getUid');
+        }
+
+        const forwardParams = utils.pick(parseQueryParams(window.location.search), options.pageParams);
+        options.params = deepmerge.merge(options.params, forwardParams);
+
+        // Handle iframe attributes
+        utils.setElAttributes(this.iframe, options.iframeAttributes);
+
+        this.ekoDelivery.load(projectId, options);
     }
 
     /**
@@ -128,7 +201,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     invoke(method, ...args) {
-        this.ekoPlayerApi.invoke(method, args);
+        this.ekoDelivery.invoke(method, args);
     }
 
     /**
@@ -140,7 +213,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     on(eventName, callback) {
-        this.embedMessageSystem.on(eventName, callback);
+        this.ekoDelivery.on(eventName, callback);
     }
 
     /**
@@ -152,7 +225,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     off(eventName, callback) {
-        this.embedMessageSystem.off(eventName, callback);
+        this.ekoDelivery.off(eventName, callback);
     }
 
     /**
@@ -165,7 +238,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     once(eventName, callback) {
-        this.embedMessageSystem.once(eventName, callback);
+        this.ekoDelivery.once(eventName, callback);
     }
 }
 

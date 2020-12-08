@@ -29,17 +29,6 @@ function pick(object, keys) {
     }, {});
 }
 
-function parseQueryParams(queryStr) {
-    let retVal = {};
-    let searchParams = new URLSearchParams(queryStr);
-
-    searchParams.forEach((value, key) => {
-        retVal[key] = value;
-    });
-
-    return retVal;
-}
-
 
 function getContainer(el) {
     let retVal = null;
@@ -65,13 +54,6 @@ function getContainer(el) {
     }
 
     return retVal;
-}
-
-
-function buildIFrame(id) {
-    let iframe = document.createElement('iframe');
-    iframe.setAttribute('id', id);
-    return iframe;
 }
 
 function isES6Supported() {
@@ -113,10 +95,8 @@ function setElAttributes(el, attributes) {
 
 export default {
     pick,
-    parseQueryParams,
-    buildIFrame,
-    getContainer,
     uniq,
+    getContainer,
     isES6Supported,
     isWebAudioSupported,
     setElAttributes
