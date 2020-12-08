@@ -29,7 +29,7 @@ class EkoDelivery {
         // Finally, let's set the iframe's src to begin loading the project
         this.iframe.setAttribute(
             'src',
-            `https://${options.env || ''}embed.eko.com/${stringifyQueryParams(embedParams)}`
+            `https://${options.env || ''}embed.eko.com/?${stringifyQueryParams(embedParams)}`
         );
     }
 
@@ -63,7 +63,7 @@ class EkoDelivery {
     //////////////////////////
 
     addIframeListeners() {
-        window.addEventListeners('message', this.onEkoEventFired);
+        window.addEventListener('message', this.onEkoEventFired.bind(this));
     }
 
     onEkoEventFired(event) {

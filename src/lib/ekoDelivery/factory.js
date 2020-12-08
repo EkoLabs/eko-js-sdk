@@ -8,11 +8,11 @@ const imples = {
 };
 
 function create(iframe, embedapiVersion) {
-    const ekoPlayerApi = imples[embedapiVersion];
-    if (!ekoPlayerApi) {
+    const ekoDelivery = imples[embedapiVersion];
+    if (!ekoDelivery) {
         throw new Error('');
     }
-    return new ekoPlayerApi(iframe);
+    return new ekoDelivery(iframe);
 }
 
 export default { create };

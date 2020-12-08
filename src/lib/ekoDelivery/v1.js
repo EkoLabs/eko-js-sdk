@@ -67,7 +67,7 @@ class EkoDelivery {
     //////////////////////////
 
     addIframeListeners() {
-        window.addEventListener('message', this.onEkoEventFired);
+        window.addEventListener('message', this.onEkoEventFired.bind(this));
     }
 
     onEkoEventFired(event) {

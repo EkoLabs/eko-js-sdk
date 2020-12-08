@@ -76,13 +76,13 @@ class EkoPlayer {
             throw new Error('Cannot initialize EkoPlayer instance as Eko videos are not supported on current environment.'); // eslint-disable-line max-len
         }
 
-        const iframe = iframeCreator.create();
+        this.iframe = iframeCreator.create();
 
         embedapi = embedapi || '1.0';
-        this.ekoDelivery = ekoDeliveryFactory.create(iframe, embedapi);
+        this.ekoDelivery = ekoDeliveryFactory.create(this.iframe, embedapi);
 
         // Append our iframe to provided DOM element/container
-        utils.getContainer(el).appendChild(iframe);
+        utils.getContainer(el).appendChild(this.iframe);
 
         // Return our public API from the constructor
         return {
@@ -147,10 +147,11 @@ class EkoPlayer {
             cover.setState(COVER_STATES.STARTED);
         });
 
+        options = this.prepareLoadingOptions(options);
+
         // Handle iframe attributes
         utils.setElAttributes(this.iframe, options.iframeAttributes);
 
-        options = this.prepareLoadingOptions(options);
         this.ekoDelivery.load(projectId, options);
     }
 
@@ -245,7 +246,7 @@ class EkoPlayer {
         }
 
         const forwardParams = utils.pick(parseQueryParams(window.location.search), options.pageParams);
-        options.params = deepmerge.merge(options.params, forwardParams);
+        options.params = deepmerge.all([options.params, forwardParams]);
 
         return options;
     }

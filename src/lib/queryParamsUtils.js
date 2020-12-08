@@ -19,7 +19,7 @@ function stringifyQueryParams(queryObj) {
     return searchParams.toString();
 }
 
-export default {
+export {
     parseQueryParams,
     stringifyQueryParams
 };
