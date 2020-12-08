@@ -147,31 +147,10 @@ class EkoPlayer {
             cover.setState(COVER_STATES.STARTED);
         });
 
-        options = deepmerge.all([DEFAULT_OPTIONS, (options || {})]);
-
-        options.events = utils.uniq(options.events);
-        options.pageParams = utils.uniq(options.pageParams);
-
-        // Add embed params that are required for some events,
-        // For example, if the "urls.intent" event is included, we must add the "urlsmode=proxy" embed param.
-        Object.keys(EVENT_TO_EMBED_PARAMS_MAP)
-            .forEach(event => {
-                if (options.events.includes(event)) {
-                    options.params = Object.assign(options.params, EVENT_TO_EMBED_PARAMS_MAP[event]);
-                }
-            });
-
-        // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
-        if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
-            options.params.eauid = window.EkoAnalytics('getUid');
-        }
-
-        const forwardParams = utils.pick(parseQueryParams(window.location.search), options.pageParams);
-        options.params = deepmerge.merge(options.params, forwardParams);
-
         // Handle iframe attributes
         utils.setElAttributes(this.iframe, options.iframeAttributes);
 
+        options = this.prepareLoadingOptions(options);
         this.ekoDelivery.load(projectId, options);
     }
 
@@ -239,6 +218,34 @@ class EkoPlayer {
      */
     once(eventName, callback) {
         this.ekoDelivery.once(eventName, callback);
+    }
+
+    ///////////////////////////
+    // PRIVATE FUNCTIONS
+    //////////////////////////
+
+    prepareLoadingOptions(options) {
+        options = deepmerge.all([DEFAULT_OPTIONS, (options || {})]);
+
+        options.events = utils.uniq(options.events);
+        options.pageParams = utils.uniq(options.pageParams);
+
+        // Add embed params that are required for some events,
+        // For example, if the "urls.intent" event is included, we must add the "urlsmode=proxy" embed param.
+        Object.keys(EVENT_TO_EMBED_PARAMS_MAP)
+            .forEach(event => {
+                if (options.events.includes(event)) {
+                    options.params = Object.assign(options.params, EVENT_TO_EMBED_PARAMS_MAP[event]);
+                }
+            });
+
+        // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
+        if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
+            options.params.eauid = window.EkoAnalytics('getUid');
+        }
+
+        const forwardParams = utils.pick(parseQueryParams(window.location.search), options.pageParams);
+        options.params = deepmerge.merge(options.params, forwardParams);
     }
 }
 
