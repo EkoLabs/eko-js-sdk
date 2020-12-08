@@ -246,6 +246,8 @@ class EkoPlayer {
 
         const forwardParams = utils.pick(parseQueryParams(window.location.search), options.pageParams);
         options.params = deepmerge.merge(options.params, forwardParams);
+
+        return options;
     }
 }
 
