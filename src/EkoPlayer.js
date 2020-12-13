@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import ekoDeliveryFactory from './lib/ekoDelivery/factory';
+import ekoEmbedFactory from './lib/ekoEmbed/factory';
 import coverFactory from './lib/cover/coverFactory';
 import iframeCreator from './lib/iframeCreator';
 
@@ -79,7 +79,7 @@ class EkoPlayer {
         this.iframe = iframeCreator.create();
 
         embedapi = embedapi || '1.0';
-        this.ekoDelivery = ekoDeliveryFactory.create(this.iframe, embedapi);
+        this.ekoEmbed = ekoEmbedFactory.create(this.iframe, embedapi);
 
         // Append our iframe to provided DOM element/container
         utils.getContainer(el).appendChild(this.iframe);
@@ -157,7 +157,7 @@ class EkoPlayer {
         // Handle iframe attributes
         utils.setElAttributes(this.iframe, options.iframeAttributes);
 
-        this.ekoDelivery.load(projectId, options);
+        this.ekoEmbed.load(projectId, options);
     }
 
     /**
@@ -186,7 +186,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     invoke(method, ...args) {
-        this.ekoDelivery.invoke(method, args);
+        this.ekoEmbed.invoke(method, args);
     }
 
     /**
@@ -198,7 +198,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     on(eventName, callback) {
-        this.ekoDelivery.on(eventName, callback);
+        this.ekoEmbed.on(eventName, callback);
     }
 
     /**
@@ -210,7 +210,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     off(eventName, callback) {
-        this.ekoDelivery.off(eventName, callback);
+        this.ekoEmbed.off(eventName, callback);
     }
 
     /**
@@ -223,7 +223,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     once(eventName, callback) {
-        this.ekoDelivery.once(eventName, callback);
+        this.ekoEmbed.once(eventName, callback);
     }
 
     ///////////////////////////

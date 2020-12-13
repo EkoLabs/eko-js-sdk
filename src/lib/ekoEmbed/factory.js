@@ -8,11 +8,11 @@ const imples = {
 };
 
 function create(iframe, embedapiVersion) {
-    const ekoDelivery = imples[embedapiVersion];
-    if (!ekoDelivery) {
+    const ekoEmbed = imples[embedapiVersion];
+    if (!ekoEmbed) {
         throw new Error('Invalid Embed API version');
     }
-    return new ekoDelivery(iframe);
+    return new ekoEmbed(iframe);
 }
 
 export default { create };
