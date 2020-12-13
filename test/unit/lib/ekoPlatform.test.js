@@ -1,4 +1,4 @@
-import ekoPlatform from './../../../src/lib/ekoPlatfrom';
+import ekoPlatform from './../../../src/lib/ekoPlatform';
 
 describe('isEkoDomain()', () => {
     it('returns false if the eko domain is not in the origin', () => {

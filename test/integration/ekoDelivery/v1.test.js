@@ -1,19 +1,18 @@
 /* eslint-disable no-undef */
-
 /* eslint-disable new-cap */
 /* eslint-disable no-magic-numbers */
 const puppeteer = require('puppeteer');
 
 
 jest.setTimeout(999999);
-describe('embedapi version 1.0 load tests', () => {
+describe('ekoPlayer.load()', () => {
     it(`ekoPlayer.load(projectId, { autoplay: true }))
         check if autoplay set to true in query string`, async() => {
         const browser = await puppeteer.launch({
             headless: true,
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/app.html`);
+        await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate(() => {
             let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '1.0');
@@ -42,7 +41,7 @@ describe('embedapi version 1.0 load tests', () => {
             headless: true,
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/app.html`);
+        await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate(() => {
             let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '1.0');
@@ -71,7 +70,7 @@ describe('embedapi version 1.0 load tests', () => {
             headless: true
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/app.html`);
+        await page.goto(`file://${__dirname}/../app.html`);
 
         // Init EkoPlayer
         const iframeId = 'testFrame';
@@ -120,10 +119,9 @@ describe('embedapi version 1.0 load tests', () => {
         const page = await browser.newPage();
         const passPageParamsKeys = ['pageParam1', 'pageParam2'];
         const passPageParamsValues = ['1', '2'];
-        await page.goto(`file://${__dirname}/app.html?${passPageParamsKeys[0]}=${passPageParamsValues[0]}&${passPageParamsKeys[1]}=${passPageParamsValues[1]}`);
+        await page.goto(`file://${__dirname}/../app.html?${passPageParamsKeys[0]}=${passPageParamsValues[0]}&${passPageParamsKeys[1]}=${passPageParamsValues[1]}`);
 
         // Init EkoPlayer
-
         await page.evaluate((pageParams) => {
             let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '1.0');
             ekoPlayer.load('zmb330', {
@@ -157,7 +155,7 @@ describe('embedapi version 1.0 load tests', () => {
             headless: true,
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/app.html?autoplay=false`);
+        await page.goto(`file://${__dirname}/../app.html?autoplay=false`);
 
         // Init EkoPlayer
         await page.evaluate(() => {
@@ -168,7 +166,7 @@ describe('embedapi version 1.0 load tests', () => {
             });
         });
 
-        // Check autoplay
+        // Get autoplay query string value
         const autoplayValue = await page.evaluate(() => {
             const iframeSrc = document.querySelector('iframe').getAttribute('src');
             const iframeURL = new URL(iframeSrc);
@@ -186,7 +184,7 @@ describe('embedapi version 1.0 load tests', () => {
             headless: true,
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/app.html`);
+        await page.goto(`file://${__dirname}/../app.html`);
         const events = ['nodestart', 'nodeend', 'playing', 'pause'];
 
         // Init EkoPlayer
@@ -197,7 +195,7 @@ describe('embedapi version 1.0 load tests', () => {
             });
         }, events);
 
-        // Check events
+        // Get events query string value
         const eventsValue = await page.evaluate(() => {
             const iframeSrc = document.querySelector('iframe').getAttribute('src');
             const iframeURL = new URL(iframeSrc);
@@ -217,7 +215,7 @@ describe('embedapi version 1.0 load tests', () => {
             headless: true,
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/appWithDomCover.html`);
+        await page.goto(`file://${__dirname}/../appWithDomCover.html`);
 
         // Init EkoPlayer
         await page.evaluate(() => {
@@ -228,9 +226,9 @@ describe('embedapi version 1.0 load tests', () => {
             });
         });
 
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(4000);
 
-        // Check dom cover class
+        // Get domCover class value
         const coverClassList =  await page.evaluate(() => {
             const coverDiv = document.getElementById('domCoverTest');
             return coverDiv.classList;
@@ -247,7 +245,7 @@ describe('embedapi version 1.0 load tests', () => {
             headless: true,
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/appWithDomCover.html`);
+        await page.goto(`file://${__dirname}/../appWithDomCover.html`);
 
         // Init EkoPlayer
         await page.evaluate(() => {
@@ -258,9 +256,9 @@ describe('embedapi version 1.0 load tests', () => {
             });
         });
 
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(4000);
 
-        // Check dom cover class
+        // Get domCover class value
         const coverClassList =  await page.evaluate(() => {
             const coverDiv = document.getElementById('domCoverTest');
             return coverDiv.classList;
@@ -270,24 +268,64 @@ describe('embedapi version 1.0 load tests', () => {
 
         await browser.close();
     });
-});
 
-describe.only('ekoPlayer.on()', () => {
-    it(`ekoPlayer.load(projectId, { events: [nodestart] })
-        check if on nodestart call back is fired`, async() => {
+    it(`ekoPlayer.load(projectId, { cover: callbackCover, autoplay: true})
+    check callbackCover called for each state`, async() => {
         const browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/app.html`);
+        await page.goto(`file://${__dirname}/../app.html`);
+
+        // Init EkoPlayer
+        await page.evaluate(() => {
+            window.coverStatesChanged = {
+                loading: false,
+                loaded: false,
+                started: false
+            };
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '1.0');
+            ekoPlayer.load('zmb330', {
+                params: { autoplay: true },
+                cover: function(state) {
+                    window.coverStatesChanged[state] = true;
+                }
+            });
+        });
+
+        await page.waitForTimeout(2000);
+
+        // Get callbackCover states map
+        const coverStatesChanged =  await page.evaluate(() => {
+            return window.coverStatesChanged;
+        });
+
+        Object.values(coverStatesChanged).forEach(stateChange => {
+            expect(stateChange).toBeTrue();
+        });
+        await browser.close();
+    });
+});
+
+describe('ekoPlayer.on()', () => {
+    it(`ekoplayer.on('nodestart', callback) 
+        check if nodestart callback fired`, async() => {
+        const browser = await puppeteer.launch({
+            headless: true,
+        });
+        const page = await browser.newPage();
+        await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate(() => {
             window.onNodeStartCallBack = false;
             let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '1.0');
+
             ekoPlayer.load('zmb330', {
                 iframeAttributes: { id: 'testFrame' },
-                events: ['nodestart']
+                events: ['nodestart'],
+                params: { autoplay: true }
             });
+
             ekoPlayer.on('nodestart', () => {
                 window.onNodeStartCallBack = true;
             });
@@ -297,26 +335,29 @@ describe.only('ekoPlayer.on()', () => {
         const nodeStartCallbackCalled = await page.evaluate(() => {
             return window.onNodeStartCallBack;
         });
-        expect(nodeStartCallbackCalled).toBeTrue();
 
+        expect(nodeStartCallbackCalled).toBeTrue();
         await browser.close();
     });
-    it.only(`ekoPlayer.load(projectId, { events: [nodestart] })
-        check if on nodestart call back is fired`, async() => {
+
+    it(`ekoplayer.on('customTestEvent', callback) 
+        check if on customTestEvent callback fired`, async() => {
         const browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             args: ['--disable-features=site-per-process']
         });
         const page = await browser.newPage();
-        await page.goto(`file://${__dirname}/app.html`);
+        await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate(() => {
             window.customTestEventFired = false;
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '1.0');
+
             ekoPlayer.load('zmb330', {
                 iframeAttributes: { id: 'testFrame' },
                 events: ['customTestEvent']
             });
+
             ekoPlayer.on('customTestEvent', () => {
                 window.customTestEventFired = true;
             });
@@ -330,6 +371,7 @@ describe.only('ekoPlayer.on()', () => {
         const customTestEventFired = await page.evaluate(() => {
             return window.customTestEventFired;
         });
+
         expect(customTestEventFired).toBeTrue();
         await browser.close();
     });
