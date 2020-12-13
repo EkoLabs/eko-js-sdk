@@ -10,7 +10,7 @@ const imples = {
 function create(iframe, embedapiVersion) {
     const ekoDelivery = imples[embedapiVersion];
     if (!ekoDelivery) {
-        throw new Error('');
+        throw new Error('Invalid Embed API version');
     }
     return new ekoDelivery(iframe);
 }

@@ -131,6 +131,11 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     load(projectId, options) {
+        if (!projectId) {
+            throw new Error('load function require project id argument');
+        }
+        options = options || {};
+
         // Handle cover
         let cover = coverFactory.create(options.cover);
 

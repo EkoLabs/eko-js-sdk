@@ -1,6 +1,9 @@
 class CallBack {
     constructor(cover) {
         this.cover = cover;
+        return {
+            setState: this.setState.bind(this)
+        };
     }
 
     setState(state, options) {

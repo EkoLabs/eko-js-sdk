@@ -9,6 +9,9 @@ const COVER_STATE_CLASSES = {
 class DomEl {
     constructor(cover) {
         this.cover = utils.getContainer(cover);
+        return {
+            setState: this.setState.bind(this)
+        };
     }
 
     setState(state) {
