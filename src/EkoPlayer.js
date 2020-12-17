@@ -1,6 +1,5 @@
-/* eslint-disable new-cap */
 import ekoEmbedFactory from './lib/ekoEmbed/factory';
-import coverFactory from './lib/cover/coverFactory';
+import coverFactory from './lib/cover/factory';
 import iframeCreator from './lib/iframeCreator';
 
 import deepmerge from 'deepmerge';
@@ -62,10 +61,12 @@ const COVER_STATES = {
 };
 
 let isEkoSupported = null;
+
 class EkoPlayer {
     /**
      * Creates an instance of EkoPlayer.
      * @param {Element|string} el - The container element to be used by the player, or a DOM selector string for the container element.
+     * @param {string} embedapi - embed api version
      * @memberof EkoPlayer
      */
     constructor(el, embedapi) {
@@ -77,9 +78,7 @@ class EkoPlayer {
         }
 
         this.iframe = iframeCreator.create();
-
-        embedapi = embedapi || '1.0';
-        this.ekoEmbed = ekoEmbedFactory.create(this.iframe, embedapi);
+        this.ekoEmbed = ekoEmbedFactory.create(this.iframe, embedapi || '1.0');
 
         // Append our iframe to provided DOM element/container
         utils.getContainer(el).appendChild(this.iframe);
@@ -105,7 +104,7 @@ class EkoPlayer {
     static isSupported() {
         if (isEkoSupported === null) {
             isEkoSupported =
-                typeof window !== 'undefined' &&
+                typeof window !== 'undefined' && // Added to support SSR
                 utils.isES6Supported() &&
                 utils.isWebAudioSupported();
         }
@@ -131,10 +130,10 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     load(projectId, options) {
-        if (!projectId) {
-            throw new Error('load function require project id argument');
+        if (!projectId || typeof projectId !== 'string') {
+            throw new Error('Invalid projectId arg passed to load() method, expected a non-empty string');
         }
-        options = options || {};
+        options = this.prepareLoadingOptions(options);
 
         // Handle cover
         let cover = coverFactory.create(options.cover);
@@ -151,8 +150,6 @@ class EkoPlayer {
         this.once('playing', () => {
             cover.setState(COVER_STATES.STARTED);
         });
-
-        options = this.prepareLoadingOptions(options);
 
         // Handle iframe attributes
         utils.setElAttributes(this.iframe, options.iframeAttributes);
@@ -246,9 +243,11 @@ class EkoPlayer {
             });
 
         // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
+        /* eslint-disable new-cap */
         if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
             options.params.eauid = window.EkoAnalytics('getUid');
         }
+        /* eslint-enable new-cap */
 
         const forwardParams = utils.pick(parseQueryParams(window.location.search), options.pageParams);
         options.params = deepmerge.all([options.params, forwardParams]);

@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import v1 from './v1';
 import v2 from './v2';
 
@@ -8,11 +7,11 @@ const imples = {
 };
 
 function create(iframe, embedapiVersion) {
-    const ekoEmbed = imples[embedapiVersion];
-    if (!ekoEmbed) {
+    const EkoEmbedClass = imples[embedapiVersion];
+    if (!EkoEmbedClass) {
         throw new Error('Invalid Embed API version');
     }
-    return new ekoEmbed(iframe);
+    return new EkoEmbedClass(iframe);
 }
 
 export default { create };

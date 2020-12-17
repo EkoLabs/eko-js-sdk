@@ -78,7 +78,7 @@ class EkoEmbed {
             return;
         }
 
-        this.eventEmitter.emit(msg.event, msg.args, msg.embedid, msg.embedapi);
+        this.eventEmitter.emit(msg.event, ...msg.args);
     }
 }
 
