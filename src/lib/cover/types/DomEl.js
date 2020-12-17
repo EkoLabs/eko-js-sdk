@@ -15,8 +15,8 @@ class DomEl {
     }
 
     setState(state) {
-        Object.values(COVER_STATE_CLASSES).forEach(calssName => {
-            this.cover.classList.remove(calssName);
+        Object.values(COVER_STATE_CLASSES).forEach(className => {
+            this.cover.classList.remove(className);
         });
         this.cover.classList.add(COVER_STATE_CLASSES[state]);
     }

@@ -1,4 +1,4 @@
-class CallBack {
+class Callback {
     constructor(cover) {
         this.cover = cover;
         return {
@@ -15,4 +15,4 @@ class CallBack {
     }
 }
 
-export default CallBack;
+export default Callback;

@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3';
 import ekoPlatform from '../ekoPlatform';
 import { stringifyQueryParams } from '../queryParamsUtils';
 
-class EkoEmbed {
+class EkoEmbedV2 {
     constructor(iframe) {
         this.iframe = iframe;
         this.eventEmitter = new EventEmitter();
@@ -82,4 +82,4 @@ class EkoEmbed {
     }
 }
 
-export default EkoEmbed;
+export default EkoEmbedV2;
