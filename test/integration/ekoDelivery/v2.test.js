@@ -345,3 +345,33 @@ describe('ekoPlayer.on()', () => {
         expect(customEventArg2).toBeTrue();
     });
 });
+
+describe('ekoPlayer.invoke()', () => {
+    it(`ekoplayer.invoke('pause')`, async() => {
+        const page = await browser.newPage();
+        await page.goto(`file://${__dirname}/../app.html`);
+
+        await page.evaluate(() => {
+            window.ekoPlayer = new EkoPlayer('#ekoPlayerEl', '2.0');
+
+            window.ekoPlayer.load('zmb330', {
+                iframeAttributes: { id: 'testFrame' },
+                params: { autoplay: true }
+            });
+        });
+        await page.waitForTimeout(8000);
+
+        await page.evaluate(() => {
+            window.ekoPlayer.invoke('pause');
+        });
+
+        await page.waitForTimeout(1000);
+
+        let projectFrame = page.frames().find(f => f.name() === 'testFrame');
+        const isPlayerPaused = await projectFrame.evaluate(() => {
+            return player.paused;
+        });
+
+        expect(isPlayerPaused).toBeTrue();
+    });
+});
