@@ -82,7 +82,7 @@ class EkoEmbedV1 {
             return;
         }
 
-        this.trigger(msg.type.replace(/^eko./, ''), msg.args);
+        this.trigger(msg.type.replace(/^eko./, ''), ...msg.args);
     }
 
     trigger(eventName, ...args) {

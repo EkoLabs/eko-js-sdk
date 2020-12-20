@@ -3,14 +3,22 @@
 /* eslint-disable no-magic-numbers */
 const puppeteer = require('puppeteer');
 
+let browser;
+beforeAll(async() => {
+    browser = await puppeteer.launch({
+        headless: true,
+        args: ['--disable-features=site-per-process']
+    });
+}, 10000);
+
+afterAll(async() => {
+    await browser.close();
+}, 15000);
 
 jest.setTimeout(999999);
 describe('ekoPlayer.load()', () => {
     it(`ekoPlayer.load(projectId, { autoplay: true }))
         check if autoplay set to true in query string`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
@@ -31,15 +39,10 @@ describe('ekoPlayer.load()', () => {
 
         expect(autoplayValue).toBeDefined();
         expect(autoplayValue).toEqual('true');
-
-        await browser.close();
     });
 
     it(`ekoPlayer.load(projectId, { autoplay: false }))
     check if autoplay set to false in query string`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
@@ -60,15 +63,10 @@ describe('ekoPlayer.load()', () => {
 
         expect(autoplayValue).toBeDefined();
         expect(autoplayValue).toEqual('false');
-
-        await browser.close();
     });
 
     it(`ekoPlayer.load(projectId, { iframeAttributes: {title: iframeTitle, ...}})
         check if iframeAttributes is the iframe attributes`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
@@ -107,15 +105,10 @@ describe('ekoPlayer.load()', () => {
         expect(name).toEqual(iframeName);
         expect(title).toEqual(iframeTitle);
         expect(referrerpolicy).toEqual(iframeReferrerpolicy);
-
-        await browser.close();
     });
 
     it(`ekoPlayer.load(projectId, { pageParams: [pageParam1, ...]})
     check if pageParam1 & pageParam2 pass to iframe query string with correct values`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         const passPageParamsKeys = ['pageParam1', 'pageParam2'];
         const passPageParamsValues = ['1', '2'];
@@ -145,15 +138,10 @@ describe('ekoPlayer.load()', () => {
 
         expect(pageParam1ValueFromIframe).toEqual(passPageParamsValues[0]);
         expect(pageParam2ValueFromIframe).toEqual(passPageParamsValues[1]);
-
-        await browser.close();
     });
 
     it(`ekoPlayer.load(projectId, { params: {autoplay: true}, pageParams: [autoplay]})
     check that autoplay of page params override autoplay params value as iframe queryString `, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html?autoplay=false`);
 
@@ -174,15 +162,10 @@ describe('ekoPlayer.load()', () => {
         });
 
         expect(autoplayValue).toEqual('false');
-
-        await browser.close();
     });
 
     it(`ekoPlayer.load(projectId, { events: ['nodestart', 'nodeend', 'playing', 'pause']})
     check that events is part of iframe query string `, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
         const events = ['nodestart', 'nodeend', 'playing', 'pause'];
@@ -205,15 +188,10 @@ describe('ekoPlayer.load()', () => {
         events.forEach(event => {
             expect(eventsValue.indexOf(event)).toBeGreaterThan(-1);
         });
-
-        await browser.close();
     });
 
     it(`ekoPlayer.load(projectId, { cover: DomCover, autoplay: false})
     check domCover autoplay false -> domCover class: eko-player-loaded`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../appWithDomCover.html`);
 
@@ -234,16 +212,14 @@ describe('ekoPlayer.load()', () => {
             return coverDiv.classList;
         });
 
-        expect(coverClassList['0']).toEqual('eko-player-loaded');
-
-        await browser.close();
+        expect(
+            coverClassList['0'] === 'eko-player-loaded' ||
+            coverClassList['0'] === 'eko-player-loading'
+        ).toBeTrue();
     });
 
     it(`ekoPlayer.load(projectId, { cover: DomCover, autoplay: true})
     check domCover autoplay true -> domCover class: eko-player-started`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../appWithDomCover.html`);
 
@@ -256,7 +232,7 @@ describe('ekoPlayer.load()', () => {
             });
         });
 
-        await page.waitForTimeout(4000);
+        await page.waitForTimeout(8000);
 
         // Get domCover class value
         const coverClassList =  await page.evaluate(() => {
@@ -265,15 +241,10 @@ describe('ekoPlayer.load()', () => {
         });
 
         expect(coverClassList['0']).toEqual('eko-player-started');
-
-        await browser.close();
     });
 
     it(`ekoPlayer.load(projectId, { cover: callbackCover, autoplay: true})
     check callbackCover called for each state`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
@@ -293,7 +264,7 @@ describe('ekoPlayer.load()', () => {
             });
         });
 
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(8000);
 
         // Get callbackCover states map
         const coverStatesChanged =  await page.evaluate(() => {
@@ -303,16 +274,12 @@ describe('ekoPlayer.load()', () => {
         Object.values(coverStatesChanged).forEach(stateChange => {
             expect(stateChange).toBeTrue();
         });
-        await browser.close();
     });
 });
 
 describe('ekoPlayer.on()', () => {
     it(`ekoplayer.on('nodestart', callback) 
         check if nodestart callback fired`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-        });
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
@@ -330,27 +297,23 @@ describe('ekoPlayer.on()', () => {
                 window.onNodeStartCallBack = true;
             });
         });
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(8000);
 
         const nodeStartCallbackCalled = await page.evaluate(() => {
             return window.onNodeStartCallBack;
         });
 
         expect(nodeStartCallbackCalled).toBeTrue();
-        await browser.close();
     });
 
     it(`ekoplayer.on('customTestEvent', callback) 
-        check if on customTestEvent callback fired`, async() => {
-        const browser = await puppeteer.launch({
-            headless: true,
-            args: ['--disable-features=site-per-process']
-        });
+    check if on customTestEvent callback fired & callback args are separtiated`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate(() => {
-            window.customTestEventFired = false;
+            window.customEventArg1 = false;
+            window.customEventArg2 = false;
             let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
 
             ekoPlayer.load('zmb330', {
@@ -358,21 +321,27 @@ describe('ekoPlayer.on()', () => {
                 events: ['customTestEvent']
             });
 
-            ekoPlayer.on('customTestEvent', () => {
-                window.customTestEventFired = true;
+            ekoPlayer.on('customTestEvent', (arg1, arg2) => {
+                window.customEventArg1 = arg1;
+                window.customEventArg2 = arg2;
             });
         });
-        await page.waitForTimeout(2000);
+
+        await page.waitForTimeout(8000);
         let projectFrame = page.frames().find(f => f.name() === 'testFrame');
         await projectFrame.evaluate(() => {
-            window.player.trigger('customTestEvent');
+            window.player.trigger('customTestEvent', true, true);
         });
-        await page.waitForTimeout(2000);
-        const customTestEventFired = await page.evaluate(() => {
-            return window.customTestEventFired;
+        await page.waitForTimeout(8000);
+
+        const customEventArg1 = await page.evaluate(() => {
+            return window.customEventArg1;
+        });
+        const customEventArg2 = await page.evaluate(() => {
+            return window.customEventArg1;
         });
 
-        expect(customTestEventFired).toBeTrue();
-        await browser.close();
+        expect(customEventArg1).toBeTrue();
+        expect(customEventArg2).toBeTrue();
     });
 });
