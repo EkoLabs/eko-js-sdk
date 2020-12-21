@@ -1,6 +1,6 @@
 {
     "name": "eko-js-sdk",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "A lightweight SDK that allows for easy integration of eko videos into webpages.",
     "main": "src/EkoPlayer.js",
     "license": "Apache-2.0",
@@ -37,6 +37,7 @@
         "jest": "^24.3.0",
         "jest-extended": "^0.11.1",
         "jest-junit": "^6.2.1",
+        "puppeteer": "^5.5.0",
         "webpack": "^4.26.0",
         "webpack-cli": "^3.1.2",
         "webpack-dev-server": "^3.1.14"

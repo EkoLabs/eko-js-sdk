@@ -1,27 +1,8 @@
-import utils from '../../../src/utils/utils';
+import utils from './../../../src/lib/utils';
 
 describe('utils', () => {
     beforeAll(() => {
         window.AudioContext = window.AudioContext || jest.fn();
-    });
-
-    describe('buildIFrame()', () => {
-        it('sets the id to the correct id', () => {
-            let frame = utils.buildIFrame('ekoframe-1');
-            expect(frame).not.toBe(undefined);
-            expect(frame.id).toEqual('ekoframe-1');
-        });
-    });
-
-    describe('isEkoDomain()', () => {
-        it('returns false if the eko domain is not in the origin', () => {
-            expect(utils.isEkoDomain('https://google.com')).toBe(false);
-        });
-        it('returns true if the eko domain is in the origin', () => {
-            expect(utils.isEkoDomain('https://eko.com')).toBe(true);
-            expect(utils.isEkoDomain('https://video.eko.com')).toBe(true);
-            expect(utils.isEkoDomain('https://video.eko.com/')).toBe(true);
-        });
     });
 
     describe('getContainer()', () => {
@@ -33,7 +14,7 @@ describe('utils', () => {
                 .toThrow('Could not successfully resolve selector: testelement');
         });
         it('throws an error if a non element is passed in', () => {
-            expect(() => utils.getContainer({params: true}))
+            expect(() => utils.getContainer({ params: true }))
                 .toThrow('Could not resolve DOM element.');
         });
     });
@@ -57,48 +38,6 @@ describe('utils', () => {
                 utm_id: 'coolio',
                 utm_marketing: 'thanks'
             });
-        });
-    });
-
-    describe('parseQueryParams()', () => {
-        it('Correctly parses a query param string', () => {
-            expect(
-                utils.parseQueryParams('autoplay=true&coolio=yay')
-            ).toEqual({
-                autoplay: 'true',
-                coolio: 'yay'
-            });
-        });
-    });
-
-    describe('stringifyQueryParams()', () => {
-        it('Correctly stringifies query object', () => {
-            expect(
-                utils.stringifyQueryParams({
-                    autoplay: true,
-                    coolio: 'yay',
-                    events: 'canplay,playing'
-                })
-            ).toEqual('autoplay=true&coolio=yay&events=canplay%2Cplaying');
-        });
-    });
-
-    describe('buildEmbedUrl()', () => {
-        it('Returns correct embed URL', () => {
-            expect(
-                utils.buildEmbedUrl(
-                    'aBcDe',
-                    { autoplay: 'true', events: 'canplay,playing' }
-                )
-            ).toEqual('https://eko.com/v/aBcDe/embed?autoplay=true&events=canplay%2Cplaying');
-
-            expect(
-                utils.buildEmbedUrl(
-                    'aBcDe',
-                    { autoplay: 'true', events: 'canplay,playing' },
-                    'staging'
-                )
-            ).toEqual('https://staging.eko.com/v/aBcDe/embed?autoplay=true&events=canplay%2Cplaying');
         });
     });
 

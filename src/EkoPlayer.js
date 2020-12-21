@@ -1,7 +1,10 @@
-import deepmerge from 'deepmerge';
-import EventEmitter from 'eventemitter3';
+import ekoEmbedFactory from './lib/ekoEmbed/factory';
+import coverFactory from './lib/cover/factory';
+import iframeCreator from './lib/iframeCreator';
 
-import utils from './utils/utils';
+import deepmerge from 'deepmerge';
+import utils from './lib/utils';
+import { parseQueryParams } from './lib/queryParamsUtils';
 
 const DEFAULT_OPTIONS = {
     env: '',
@@ -57,22 +60,16 @@ const COVER_STATES = {
     STARTED: 'started',
 };
 
-const COVER_STATE_CLASSES = {
-    LOADING: 'eko-player-loading',
-    LOADED: 'eko-player-loaded',
-    STARTED: 'eko-player-started',
-};
-
-let instanceCount = 0;
 let isEkoSupported = null;
 
 class EkoPlayer {
     /**
      * Creates an instance of EkoPlayer.
      * @param {Element|string} el - The container element to be used by the player, or a DOM selector string for the container element.
+     * @param {string} embedapi - embed api version
      * @memberof EkoPlayer
      */
-    constructor(el) {
+    constructor(el, embedapi) {
         if (!el) {
             throw new Error('Constructor must get an element (or selector) as first argument.');
         }
@@ -80,18 +77,11 @@ class EkoPlayer {
             throw new Error('Cannot initialize EkoPlayer instance as Eko videos are not supported on current environment.'); // eslint-disable-line max-len
         }
 
-        // Initialize private members
-        this._iframe = utils.buildIFrame(`ekoembed-${++instanceCount}`);
-        this._eventEmitter = new EventEmitter();
-
-        // Bind Listeners
-        this.onEkoEventFired = this.onEkoEventFired.bind(this);
-
-        // Attach event listeners
-        this.addEventListeners();
+        this.iframe = iframeCreator.create();
+        this.ekoEmbed = ekoEmbedFactory.create(this.iframe, embedapi || '1.0');
 
         // Append our iframe to provided DOM element/container
-        utils.getContainer(el).appendChild(this._iframe);
+        utils.getContainer(el).appendChild(this.iframe);
 
         // Return our public API from the constructor
         return {
@@ -114,10 +104,10 @@ class EkoPlayer {
     static isSupported() {
         if (isEkoSupported === null) {
             isEkoSupported =
+                typeof window !== 'undefined' && // Added to support SSR
                 utils.isES6Supported() &&
                 utils.isWebAudioSupported();
         }
-
         return isEkoSupported;
     }
 
@@ -140,108 +130,31 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     load(projectId, options) {
-        // Deep merge of default options with provided options (arrays are concatenated).
-        options = deepmerge.all([
-            DEFAULT_OPTIONS,
-            options || {},
-            {
-                params: {
-                    embedapi: '1.0',
-                    embedid: this._iframe.id
-                }
-            }
-        ]);
-
-        // Add embed params that are required for some events,
-        // For example, if the "urls.intent" event is included, we must add the "urlsmode=proxy" embed param.
-        Object.keys(EVENT_TO_EMBED_PARAMS_MAP)
-            .forEach(event => {
-                if (options.events.includes(event)) {
-                    options.params = Object.assign(options.params, EVENT_TO_EMBED_PARAMS_MAP[event]);
-                }
-            });
-
-        // Get rid of any duplications in arrays
-        options.events = utils.uniq(options.events);
-        options.pageParams = utils.uniq(options.pageParams);
-
-        // Add events to our params
-        options.params.events = options.events.join(',');
-
-        // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
-        /* eslint-disable new-cap */
-        if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
-            options.params.eauid = window.EkoAnalytics('getUid');
+        if (!projectId || typeof projectId !== 'string') {
+            throw new Error('Invalid projectId arg passed to load() method, expected a non-empty string');
         }
-        /* eslint-enable new-cap */
+        options = this.prepareLoadingOptions(options);
 
-        let coverDomEl;
-        let coverCallback;
+        // Handle cover
+        let cover = coverFactory.create(options.cover);
 
-        if (options.cover) {
-            // Handle cover callback
-            if (typeof options.cover === 'function') {
-                coverCallback = options.cover;
-            } else {
-                // Resolve the cover DOM element if given
-                coverDomEl = utils.getContainer(options.cover);
-            }
+        // LOADING
+        cover.setState(COVER_STATES.LOADING);
 
-            // Custom cover was given, let's add a cover=false embed param to disable default cover.
-            if (!options.params.hasOwnProperty('cover')) {
-                options.params.cover = false;
-            }
-        }
+        // LOADED
+        this.once('canplay', (buffered, isAutoplayExpected) => {
+            cover.setState(COVER_STATES.LOADED, { buffered, isAutoplayExpected });
+        });
 
-        // Get the final embed params object
-        // (merging params with selected page params to forward)
-        const embedParams = Object.assign(
-            {},
-            options.params,
-            utils.pick(
-                utils.parseQueryParams(window.location.search),
-                options.pageParams
-            )
-        );
-
-        // Handle cover logic
-        if (coverDomEl || coverCallback) {
-            // LOADING
-            if (coverDomEl) {
-                coverDomEl.classList.add(COVER_STATE_CLASSES.LOADING);
-            } else if (coverCallback) {
-                coverCallback(COVER_STATES.LOADING);
-            }
-
-            // LOADED
-            this.once('canplay', (buffered, isAutoplayExpected) => {
-                if (coverDomEl) {
-                    coverDomEl.classList.remove(COVER_STATE_CLASSES.LOADING);
-                    coverDomEl.classList.add(COVER_STATE_CLASSES.LOADED);
-                } else if (coverCallback) {
-                    coverCallback(COVER_STATES.LOADED, { buffered, isAutoplayExpected });
-                }
-            });
-
-            // STARTED
-            this.once('playing', () => {
-                if (coverDomEl) {
-                    coverDomEl.classList.remove(COVER_STATE_CLASSES.LOADED);
-                    coverDomEl.classList.add(COVER_STATE_CLASSES.STARTED);
-                } else if (coverCallback) {
-                    coverCallback(COVER_STATES.STARTED);
-                }
-            });
-        }
+        // STARTED
+        this.once('playing', () => {
+            cover.setState(COVER_STATES.STARTED);
+        });
 
         // Handle iframe attributes
-        utils.setElAttributes(this._iframe, options.iframeAttributes);
+        utils.setElAttributes(this.iframe, options.iframeAttributes);
 
-        // Finally, let's set the iframe's src to begin loading the project
-        this._iframe.setAttribute(
-            'src',
-            utils.buildEmbedUrl(projectId, embedParams, options.env)
-        );
+        this.ekoEmbed.load(projectId, options);
     }
 
     /**
@@ -250,7 +163,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     play() {
-        this.invoke('play');
+        this.invoke('play', []);
     }
 
     /**
@@ -259,7 +172,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     pause() {
-        this.invoke('pause');
+        this.invoke('pause', []);
     }
 
     /**
@@ -270,14 +183,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     invoke(method, ...args) {
-        if (typeof method !== 'string') {
-            throw new Error('Expected required argument method to have type string');
-        }
-        const action = {
-            type: `eko.${method}`,
-            args: args
-        };
-        this._iframe.contentWindow.postMessage(action, '*');
+        this.ekoEmbed.invoke(method, args);
     }
 
     /**
@@ -289,7 +195,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     on(eventName, callback) {
-        this._eventEmitter.on(eventName, callback);
+        this.ekoEmbed.on(eventName, callback);
     }
 
     /**
@@ -301,7 +207,7 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     off(eventName, callback) {
-        this._eventEmitter.off(eventName, callback);
+        this.ekoEmbed.off(eventName, callback);
     }
 
     /**
@@ -314,37 +220,39 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     once(eventName, callback) {
-        this._eventEmitter.once(eventName, callback);
+        this.ekoEmbed.once(eventName, callback);
     }
 
     ///////////////////////////
     // PRIVATE FUNCTIONS
     //////////////////////////
 
-    /*
-     * Private function. Will emit an event and pass its arguments.
-     */
-    trigger(eventName, ...args) {
-        this._eventEmitter.emit(eventName, ...args);
-    }
+    prepareLoadingOptions(options) {
+        options = deepmerge.all([DEFAULT_OPTIONS, (options || {})]);
 
-    onEkoEventFired(event) {
-        if (!utils.isEkoDomain(event.origin)) {
-            return;
+        options.events = utils.uniq(options.events);
+        options.pageParams = utils.uniq(options.pageParams);
+
+        // Add embed params that are required for some events,
+        // For example, if the "urls.intent" event is included, we must add the "urlsmode=proxy" embed param.
+        Object.keys(EVENT_TO_EMBED_PARAMS_MAP)
+            .forEach(event => {
+                if (options.events.includes(event)) {
+                    options.params = Object.assign(options.params, EVENT_TO_EMBED_PARAMS_MAP[event]);
+                }
+            });
+
+        // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
+        /* eslint-disable new-cap */
+        if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
+            options.params.eauid = window.EkoAnalytics('getUid');
         }
+        /* eslint-enable new-cap */
 
-        const msg = event.data;
+        const forwardParams = utils.pick(parseQueryParams(window.location.search), options.pageParams);
+        options.params = deepmerge.all([options.params, forwardParams]);
 
-        // Do nothing if this message was not intended for us
-        if (!msg.type || msg.embedId !== this._iframe.id) {
-            return;
-        }
-
-        this.trigger.apply(this, [msg.type.replace(/^eko./, '')].concat(msg.args));
-    }
-
-    addEventListeners() {
-        window.addEventListener('message', this.onEkoEventFired);
+        return options;
     }
 }
 

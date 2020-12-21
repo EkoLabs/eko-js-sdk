@@ -30,6 +30,7 @@ Creates an instance of an EkoPlayer.
 | Param           | Type           | Description  |
 | :-------------: |:--------------:| :------------|
 | el | `Element, String` | The container element to be used by the player, or a DOM selector string for the container element. |
+| embedapi | `String` | Optional. eko embed api version to be used internally. Valid values include `"1.0"`, `"2.0"`. If no value given, default value `"1.0"` will be used. |
 
 #### load(projectId, options) &rarr; Promise
 
@@ -48,7 +49,7 @@ Will load and display an eko project. The EkoPlayerView will display the loading
 **Example**
 
 ```javascript
-let ekoPlayer = new EkoPlayer('#myContainer');
+let ekoPlayer = new EkoPlayer('#myContainer', '1.0');
 ekoPlayer.load('AWLLK1', {
     params: {
         autoplay: false,
