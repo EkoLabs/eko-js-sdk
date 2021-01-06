@@ -3,3 +3,4 @@ test-reports/
 dist/
 .npmrc
 .idea
+.vscode

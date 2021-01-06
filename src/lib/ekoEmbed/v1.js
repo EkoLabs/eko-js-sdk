@@ -18,14 +18,14 @@ class EkoEmbedV1 {
         };
     }
 
-    load(projectId, options) {
+    load(id, options) {
         let embedParams = options.params || {};
         embedParams.embedapi = '1.0';
         embedParams.embedid = this.iframe.id;
         embedParams.events = options.events.join(',');
 
         // Custom cover was given, let's add a cover=false embed param to disable default cover.
-        if (options.cover && (!embedParams.hasOwnProperty('cover'))) {
+        if (options.cover && (!embedParams.hasOwnProperty('cover'))) { // eslint-disable-line no-prototype-builtins
             embedParams.cover = false;
         }
 
@@ -33,7 +33,7 @@ class EkoEmbedV1 {
         const queryString = stringifyQueryParams(embedParams);
         this.iframe.setAttribute(
             'src',
-            `https://${env}eko.com/v/${projectId}/embed?${queryString}`
+            `https://${env}eko.com/v/${id}/embed?${queryString}`
         );
     }
 

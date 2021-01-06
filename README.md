@@ -32,19 +32,19 @@ Creates an instance of an EkoPlayer.
 | el | `Element, String` | The container element to be used by the player, or a DOM selector string for the container element. |
 | embedapi | `String` | Optional. eko embed api version to be used internally. Valid values include `"1.0"`, `"2.0"`. If no value given, default value `"1.0"` will be used. |
 
-#### load(projectId, options) &rarr; Promise
+#### load(id, options)
 
 Will load and display an eko project. The EkoPlayerView will display the loading animation while it prepares the project for playback. Returns a promise that will fail if the project id is invalid.
 
 | Param           | Type           | Description  |
 | :-------------: |:--------------:| :------------|
-| projectId | `String` | The id of a project to load and display. |
+| id | `String` | The eko video id to load and display. |
 | options | `Object` | Options for project delivery. |
 | options.params | `Object` | A dictionary of embed params that will affect the delivery. Default includes `{autoplay: true}`.|
 | options.events | `String[]` | A list of events that should be forwarded. |
 | options.cover | `Element, string, function` | An element or the query selector string for a loading cover. When loading happens a `eko-player-loading` class will be added to the element. When loading completes, the `eko-player-loading` class will be removed and replaced with `eko-player-loaded`. Once video begins playback, the `eko-player-loaded` class will be removed and replaced by `eko-player-started`. If a function is passed, it will be invoked with a string argument (state) whenever the state changes. Some states may also include a 2nd object argument which contains properties pertaining to the state. The possible state values are `loading` (cover should be shown), `loaded` (cover should be hidden and play button shown) and `started` (both cover and play button should be hidden). If no cover is provided, the default eko loading cover will be shown. |
-| options.iframeAttributes | `Object` | standard attributes of iframe HTML element
-| options.pageParams | `String[]` | Any query params from the page url that should be forwarded to the iframe. Can supply regex and strings. By default, the following query params will automatically be forwarded: autoplay, debug, utm_*, headnodeid. |
+| options.iframeAttributes | `Object` | standard attributes of iframe HTML element. |
+| options.excludePropagatedParams | `String[]` | By default, all query string params present on the page will be forwarded onto the video iframe. In order to exclude params from being forwarded, you can supply an array of query param keys (strings or regexes) to list the params that should not be propagated. |
 
 **Example**
 
@@ -58,8 +58,7 @@ ekoPlayer.load('AWLLK1', {
     },
     events: ['nodestart', 'nodeend', 'playing', 'pause'],
     cover: '#myCoverId',
-    iframeAttributes: { title: 'My Eko Player' },
-    pageParams: ['myCustomQueryParam']
+    iframeAttributes: { title: 'My Eko Player' }
 });
 ```
 

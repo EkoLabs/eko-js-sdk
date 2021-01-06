@@ -18,9 +18,9 @@ class EkoEmbedV2 {
     }
 
 
-    load(projectId, options) {
+    load(id, options) {
         let embedParams = options.params || {};
-        embedParams.id = projectId;
+        embedParams.id = id;
         embedParams.embedapi = '2.0';
         embedParams.embedid = this.iframe.id;
         embedParams.events = options.events.join(',');
