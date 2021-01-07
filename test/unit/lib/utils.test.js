@@ -19,24 +19,22 @@ describe('utils', () => {
         });
     });
 
-    describe('pick()', () => {
-        it('Returns object containing only selected keys', () => {
+    describe('omit()', () => {
+        it('Returns object omitting only selected keys', () => {
             expect(
-                utils.pick({ a: 1, b: 2, c: 3 }, ['a', 'c'])
-            ).toEqual({ a: 1, c: 3 });
+                utils.omit({ a: 1, b: 2, c: 3 }, ['a', 'c'])
+            ).toEqual({ b: 2 });
         });
         it('Supports regex', () => {
             expect(
-                utils.pick({
+                utils.omit({
                     autoplay: true,
                     coolio: 'yay',
                     utm_id: 'coolio',
                     utm_marketing: 'thanks'
                 }, ['autoplay', /^utm_.*$/])
             ).toEqual({
-                autoplay: true,
-                utm_id: 'coolio',
-                utm_marketing: 'thanks'
+                coolio: 'yay'
             });
         });
     });

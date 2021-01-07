@@ -23,7 +23,7 @@
 
 <body>
     <div>
-        <input type="text" id="projectid" name="id" placeholder="Project ID"><br><br>
+        <input type="text" id="id" name="id" placeholder="Project ID"><br><br>
         <input type="text" id="events" name="events" placeholder="Custom Events"><br><br>
         <input type="text" id="params" name="params" placeholder="Params"><br><br>
         <input type="text" id="environment" name="environment" placeholder="Environment"><br><br>
@@ -55,7 +55,7 @@
             ekoPlayer.pause();
         }
         load = function() {
-            let projid = document.getElementById('projectid').value;
+            let projid = document.getElementById('id').value;
             let events = document.getElementById('events').value;
             let params = document.getElementById('params').value;
             let environment = document.getElementById('environment').value;

@@ -17,7 +17,7 @@ afterAll(async() => {
 
 jest.setTimeout(999999);
 describe('ekoPlayer.load()', () => {
-    it(`ekoPlayer.load(projectId, { autoplay: true }))
+    it(`ekoPlayer.load(id, { autoplay: true }))
         check if autoplay set to true in query string`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
@@ -41,7 +41,7 @@ describe('ekoPlayer.load()', () => {
         expect(autoplayValue).toEqual('true');
     });
 
-    it(`ekoPlayer.load(projectId, { autoplay: false }))
+    it(`ekoPlayer.load(id, { autoplay: false }))
     check if autoplay set to false in query string`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
@@ -65,7 +65,7 @@ describe('ekoPlayer.load()', () => {
         expect(autoplayValue).toEqual('false');
     });
 
-    it(`ekoPlayer.load(projectId, { iframeAttributes: {title: iframeTitle, ...}})
+    it(`ekoPlayer.load(id, { iframeAttributes: {title: iframeTitle, ...}})
         check if iframeAttributes is the iframe attributes`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
@@ -107,20 +107,18 @@ describe('ekoPlayer.load()', () => {
         expect(referrerpolicy).toEqual(iframeReferrerpolicy);
     });
 
-    it(`ekoPlayer.load(projectId, { pageParams: [pageParam1, ...]})
+    it(`ekoPlayer.load(id)
     check if pageParam1 & pageParam2 pass to iframe query string with correct values`, async() => {
         const page = await browser.newPage();
-        const passPageParamsKeys = ['pageParam1', 'pageParam2'];
-        const passPageParamsValues = ['1', '2'];
-        await page.goto(`file://${__dirname}/../app.html?${passPageParamsKeys[0]}=${passPageParamsValues[0]}&${passPageParamsKeys[1]}=${passPageParamsValues[1]}`);
+        const passQueryParamKeys = ['pageParam1', 'pageParam2'];
+        const passQueryParamValues = ['1', '2'];
+        await page.goto(`file://${__dirname}/../app.html?${passQueryParamKeys[0]}=${passQueryParamValues[0]}&${passQueryParamKeys[1]}=${passQueryParamValues[1]}`);
 
         // Init EkoPlayer
-        await page.evaluate((pageParams) => {
+        await page.evaluate(() => {
             let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
-                pageParams
-            });
-        }, passPageParamsKeys);
+            ekoPlayer.load('zmb330');
+        }, passQueryParamKeys);
 
         // Check pageParam1
         const pageParam1ValueFromIframe = await page.evaluate(() => {
@@ -136,12 +134,12 @@ describe('ekoPlayer.load()', () => {
             return iframeURL.searchParams.get('pageParam2');
         });
 
-        expect(pageParam1ValueFromIframe).toEqual(passPageParamsValues[0]);
-        expect(pageParam2ValueFromIframe).toEqual(passPageParamsValues[1]);
+        expect(pageParam1ValueFromIframe).toEqual(passQueryParamValues[0]);
+        expect(pageParam2ValueFromIframe).toEqual(passQueryParamValues[1]);
     });
 
-    it(`ekoPlayer.load(projectId, { params: {autoplay: true}, pageParams: [autoplay]})
-    check that autoplay of page params override autoplay params value as iframe queryString `, async() => {
+    it(`ekoPlayer.load(id, { params: { autoplay: true } })
+    check that autoplay of query param override autoplay params value as iframe queryString `, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html?autoplay=false`);
 
@@ -149,8 +147,7 @@ describe('ekoPlayer.load()', () => {
         await page.evaluate(() => {
             let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
             ekoPlayer.load('zmb330', {
-                params: { autoplay: true },
-                pageParams: ['autoplay']
+                params: { autoplay: true }
             });
         });
 
@@ -164,7 +161,36 @@ describe('ekoPlayer.load()', () => {
         expect(autoplayValue).toEqual('false');
     });
 
-    it(`ekoPlayer.load(projectId, { events: ['nodestart', 'nodeend', 'playing', 'pause']})
+    it(`ekoPlayer.load(id, { excludePropagatedParams: ['autoplay'] })
+    check that autoplay query param is not being forwarded to iframe`, async() => {
+        const page = await browser.newPage();
+        await page.goto(`file://${__dirname}/../app.html?autoplay=false&coolio=yay`);
+
+        // Init EkoPlayer
+        await page.evaluate(() => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '1.0');
+            ekoPlayer.load('zmb330', {
+                params: { autoplay: true },
+                excludePropagatedParams: ['autoplay']
+            });
+        });
+
+        // Get autoplay query string value
+        const getQueryParamValue = async (key) => {
+            const retVal = await page.evaluate((param) => {
+                const iframeSrc = document.querySelector('iframe').getAttribute('src');
+                const iframeURL = new URL(iframeSrc);
+                return iframeURL.searchParams.get(param);
+            }, key);
+
+            return retVal;
+        };
+
+        expect(await getQueryParamValue('autoplay')).toEqual('true');
+        expect(await getQueryParamValue('coolio')).toEqual('yay');
+    });
+
+    it(`ekoPlayer.load(id, { events: ['nodestart', 'nodeend', 'playing', 'pause']})
     check that events is part of iframe query string `, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
@@ -190,7 +216,7 @@ describe('ekoPlayer.load()', () => {
         });
     });
 
-    it(`ekoPlayer.load(projectId, { cover: DomCover, autoplay: false})
+    it(`ekoPlayer.load(id, { cover: DomCover, autoplay: false})
     check domCover autoplay false -> domCover class: eko-player-loaded`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../appWithDomCover.html`);
@@ -218,7 +244,7 @@ describe('ekoPlayer.load()', () => {
         ).toBeTrue();
     });
 
-    it(`ekoPlayer.load(projectId, { cover: DomCover, autoplay: true})
+    it(`ekoPlayer.load(id, { cover: DomCover, autoplay: true})
     check domCover autoplay true -> domCover class: eko-player-started`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../appWithDomCover.html`);
@@ -243,7 +269,7 @@ describe('ekoPlayer.load()', () => {
         expect(coverClassList['0']).toEqual('eko-player-started');
     });
 
-    it(`ekoPlayer.load(projectId, { cover: callbackCover, autoplay: true})
+    it(`ekoPlayer.load(id, { cover: callbackCover, autoplay: true})
     check callbackCover called for each state`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);

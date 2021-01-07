@@ -21,18 +21,7 @@ const DEFAULT_OPTIONS = {
     params: {
         autoplay: true
     },
-    pageParams: [
-        'autoplay',
-        'debug',
-        /^utm_.*$/,
-        'headnodeid',
-        'clearcheckpoints',
-        'profiler',
-        'autoprofiler',
-        'hidePauseOverlay',
-        'studiorevision',
-        'forceTech',
-    ],
+    excludePropagatedParams: [],
 
     // The default events are needed for the SDK itself.
     // Any additional events will be concatenated.
@@ -114,7 +103,7 @@ class EkoPlayer {
     /**
      * Will load and display an eko project.
      *
-     * @param {string} projectId - id of the project to load
+     * @param {string} id - id of the project to load
      * @param {object} [options] - loading options
      * @param {object} [options.params] - A list of embed params that will affect the delivery. Default includes {autoplay: true}.
      * @param {string[]} [options.events] - A list of events that should be forwarded to the app.
@@ -125,13 +114,13 @@ class EkoPlayer {
      * The possible state values are "loading" (cover should be shown) and "loaded" (cover should be hidden).
      * If no cover is provided, the default eko loading cover will be shown.
      * @param {object} [options.iframeAttributes] - standard attributes of iframe HTML element
-     * @param {array} [options.pageParams] - Any query params from the page url that should be forwarded to the iframe. Can supply regex and strings. By default, the following query params will automatically be forwarded: autoplay, debug, utm_*, headnodeid
-     * @returns Promise that will fail if the project id is invalid
+     * @param {array} [options.excludePropagatedParams] - By default, all query string params present on the page will be forwarded onto the video iframe.
+     * In order to exclude params from being forwarded, you can supply an array of query param keys (strings or regexes) to list the params that should not be propagated.
      * @memberof EkoPlayer
      */
-    load(projectId, options) {
-        if (!projectId || typeof projectId !== 'string') {
-            throw new Error('Invalid projectId arg passed to load() method, expected a non-empty string');
+    load(id, options) {
+        if (!id || typeof id !== 'string') {
+            throw new Error('Invalid id arg passed to load() method, expected a non-empty string');
         }
         options = this.prepareLoadingOptions(options);
 
@@ -154,7 +143,7 @@ class EkoPlayer {
         // Handle iframe attributes
         utils.setElAttributes(this.iframe, options.iframeAttributes);
 
-        this.ekoEmbed.load(projectId, options);
+        this.ekoEmbed.load(id, options);
     }
 
     /**
@@ -231,7 +220,7 @@ class EkoPlayer {
         options = deepmerge.all([DEFAULT_OPTIONS, (options || {})]);
 
         options.events = utils.uniq(options.events);
-        options.pageParams = utils.uniq(options.pageParams);
+        options.excludePropagatedParams = utils.uniq(options.excludePropagatedParams);
 
         // Add embed params that are required for some events,
         // For example, if the "urls.intent" event is included, we must add the "urlsmode=proxy" embed param.
@@ -249,7 +238,7 @@ class EkoPlayer {
         }
         /* eslint-enable new-cap */
 
-        const forwardParams = utils.pick(parseQueryParams(window.location.search), options.pageParams);
+        const forwardParams = utils.omit(parseQueryParams(window.location.search), options.excludePropagatedParams);
         options.params = deepmerge.all([options.params, forwardParams]);
 
         return options;

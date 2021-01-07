@@ -11,24 +11,23 @@ function uniq(arr) {
 /**
  * Returns a new object with a subset of properties from original object.
  * @param {object} object - Source object.
- * @param {(string|RegExp)[]} keys - Array of keys to pick from source object onto target object. RegExp is also supported.
+ * @param {(string|RegExp)[]} keys - Array of keys to omit from the target object. RegExp is also supported.
  */
-function pick(object, keys) {
+function omit(object, keys) {
     return keys.reduce((obj, key) => {
         if (key instanceof RegExp) {
             Object.keys(object).forEach((objectKey) => {
                 if (key.test(objectKey)) {
-                    obj[objectKey] = object[objectKey];
+                    delete obj[objectKey];
                 }
             });
-        } else if (object && object.hasOwnProperty(key)) {
-            obj[key] = object[key];
+        } else if (object && object.hasOwnProperty(key)) { // eslint-disable-line no-prototype-builtins
+            delete obj[key];
         }
 
         return obj;
-    }, {});
+    }, Object.assign({}, object));
 }
-
 
 function getContainer(el) {
     let retVal = null;
@@ -94,7 +93,7 @@ function setElAttributes(el, attributes) {
 }
 
 export default {
-    pick,
+    omit,
     uniq,
     getContainer,
     isES6Supported,
