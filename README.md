@@ -5,8 +5,9 @@ A lightweight SDK that allows for easy integration of eko videos into webpages
 ## Installation
 
 From your favorite CLI tool:
-```
-npm install @ekolabs/eko-react-sdk
+
+```shell
+npm install @ekolabs/eko-js-sdk
 ```
 
 # API
