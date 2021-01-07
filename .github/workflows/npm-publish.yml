@@ -35,6 +35,7 @@ jobs:
         id: publish
         uses: JS-DevTools/npm-publish@v1
         with:
+          access: "public"
           token: ${{ secrets.NPM_TOKEN }}
       - if: steps.publish.type != 'none'
         run: |
