@@ -162,7 +162,7 @@ describe('ekoPlayer.load()', () => {
     });
 
     it(`ekoPlayer.load(id, { excludePropagatedParams: ['autoplay'] })
-    check that autoplay query paras override autoplay params value as iframe queryString `, async() => {
+    check that autoplay query param is not being forwarded to iframe `, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html?autoplay=false&coolio=yay`);
 
