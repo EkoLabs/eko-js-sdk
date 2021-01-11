@@ -24,7 +24,8 @@ module.exports = () => {
             filename: '[name].js', // Overridden in webpack.prod.js
             library: LIBRARY_NAME,
             libraryExport: 'default',
-            libraryTarget: 'umd'
+            libraryTarget: 'umd',
+            globalObject: 'this',
         },
 
         module: {

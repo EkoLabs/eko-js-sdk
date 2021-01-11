@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 12
       - run: yarn install --frozen-lockfile
-      - run: yarn build
+      - run: yarn build:production
       - run: yarn test
 
   publish-npm:
