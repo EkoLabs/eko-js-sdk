@@ -25,6 +25,12 @@ class EkoEmbedV2 {
         embedParams.embedid = this.iframe.id;
         embedParams.events = options.events.join(',');
 
+        if (typeof options.csp === 'object') {
+            embedParams.csp = true;
+            this.once('loader.csp.ready', () => {
+                this.iframe.contentWindow.postMessage({ target: 'loader', csp: options.csp }, '*');
+            });
+        }
 
         // Finally, let's set the iframe's src to begin loading the project
         this.iframe.setAttribute(
@@ -61,7 +67,6 @@ class EkoEmbedV2 {
     ///////////////////////////
     // PRIVATE FUNCTIONS
     //////////////////////////
-
     addIframeListeners() {
         window.addEventListener('message', this.onEkoEventFired.bind(this));
     }
