@@ -176,7 +176,7 @@ describe('ekoPlayer.load()', () => {
         });
 
         // Get autoplay query string value
-        const getQueryParamValue = async (key) => {
+        const getQueryParamValue = async(key) => {
             const retVal = await page.evaluate((param) => {
                 const iframeSrc = document.querySelector('iframe').getAttribute('src');
                 const iframeURL = new URL(iframeSrc);
@@ -300,6 +300,28 @@ describe('ekoPlayer.load()', () => {
         Object.values(coverStatesChanged).forEach(stateChange => {
             expect(stateChange).toBeTrue();
         });
+    });
+
+    it(`ekoPlayer.load(id, { csp: {key: 'value'}})
+    check if csp is set to true in query string`, async() => {
+        const page = await browser.newPage();
+        await page.goto(`file://${__dirname}/../app.html`);
+
+        // Init EkoPlayer
+        await page.evaluate(() => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
+            ekoPlayer.load('zmb330', {
+                csp: { key: 'value' }
+            });
+        });
+
+        // Get csp query string value
+        const cspFound = await page.evaluate(() => {
+            const iframeSrc = document.querySelector('iframe').getAttribute('src');
+            const iframeURL = new URL(iframeSrc);
+            return iframeURL.searchParams.get('csp');
+        });
+        expect(cspFound).toBeTruthy();
     });
 });
 
