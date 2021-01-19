@@ -302,8 +302,8 @@ describe('ekoPlayer.load()', () => {
         });
     });
 
-    it(`ekoPlayer.load(id, { csp: {key: 'value'}})
-    check if csp is set to true in query string`, async() => {
+    it(`ekoPlayer.load(id, { clientSideParams: {key: 'value'}})
+    check if clientSideParams is set to true in query string`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
@@ -311,7 +311,7 @@ describe('ekoPlayer.load()', () => {
         await page.evaluate(() => {
             let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
             ekoPlayer.load('zmb330', {
-                csp: { key: 'value' }
+                clientSideParams: { key: 'value' }
             });
         });
 
