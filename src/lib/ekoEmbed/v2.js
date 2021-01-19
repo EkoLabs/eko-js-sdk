@@ -25,10 +25,11 @@ class EkoEmbedV2 {
         embedParams.embedid = this.iframe.id;
         embedParams.events = options.events.join(',');
 
-        if (options.csp && typeof options.csp === 'object') {
+        const clientSideParams = options.clientSideParams;
+        if (clientSideParams && typeof clientSideParams === 'object') {
             embedParams.csp = true;
             this.once('loader.csp.ready', () => {
-                this.iframe.contentWindow.postMessage({ target: 'loader', csp: options.csp }, '*');
+                this.iframe.contentWindow.postMessage({ target: 'loader', csp: clientSideParams }, '*');
             });
         }
 
