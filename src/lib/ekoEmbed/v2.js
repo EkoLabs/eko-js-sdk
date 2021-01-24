@@ -84,6 +84,9 @@ class EkoEmbedV2 {
             return;
         }
 
+        // Validate args is array
+        msg.args = Array.isArray(msg.args) ? msg.args : [msg.args];
+
         this.eventEmitter.emit(msg.event, ...msg.args);
     }
 }
