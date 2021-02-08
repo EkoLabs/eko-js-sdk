@@ -231,10 +231,15 @@ class EkoPlayer {
                 }
             });
 
-        // If EkoAnalytics exists on parent frame, pass the EA user id to the child frame
+        // If EkoAnalytics exists on parent frame, pass the EA user and sesssion ids to the child frame
         /* eslint-disable new-cap */
-        if (window.EkoAnalytics && window.EkoAnalytics('getUid')) {
-            options.params.eauid = window.EkoAnalytics('getUid');
+        if (window.EkoAnalytics) {
+            if (window.EkoAnalytics('getUid')) {
+                options.params.eauid = window.EkoAnalytics('getUid');
+            }
+            if (window.EkoAnalytics('getSid')) {
+                options.params.easid = window.EkoAnalytics('getSid');
+            }
         }
         /* eslint-enable new-cap */
 
