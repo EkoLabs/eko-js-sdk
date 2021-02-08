@@ -325,7 +325,7 @@ describe('ekoPlayer.load()', () => {
     });
 
     it(`ekoPlayer.load(id, { params: { id: abcde, embedapi: 3.0 } })
-    check options params override defulat values and id args `, async() => {
+    check options params override default values and id args `, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html?autoplay=false`);
 
