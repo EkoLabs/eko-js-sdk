@@ -323,6 +323,43 @@ describe('ekoPlayer.load()', () => {
         });
         expect(cspFound).toBeTruthy();
     });
+
+    it(`ekoPlayer.load(id, { params: { id: abcde, embedapi: 3.0 } })
+    check options params override default values and id args `, async() => {
+        const page = await browser.newPage();
+        await page.goto(`file://${__dirname}/../app.html?autoplay=false`);
+
+        const overrideId = 'abcde';
+        const overrideEmbedapi = '3.0';
+
+        // Init EkoPlayer
+        await page.evaluate((id, api) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
+            ekoPlayer.load('zmb330', {
+                params: {
+                    id: id,
+                    embedapi: api
+                }
+            });
+        }, overrideId, overrideEmbedapi);
+
+        // Get id query string value
+        const idValue = await page.evaluate(() => {
+            const iframeSrc = document.querySelector('iframe').getAttribute('src');
+            const iframeURL = new URL(iframeSrc);
+            return iframeURL.searchParams.get('id');
+        });
+
+        // Get embedapi string value
+        const embedapiValue = await page.evaluate(() => {
+            const iframeSrc = document.querySelector('iframe').getAttribute('src');
+            const iframeURL = new URL(iframeSrc);
+            return iframeURL.searchParams.get('embedapi');
+        });
+
+        expect(idValue).toEqual(overrideId);
+        expect(embedapiValue).toEqual(overrideEmbedapi);
+    });
 });
 
 describe('ekoPlayer.on()', () => {

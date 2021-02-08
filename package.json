@@ -1,6 +1,6 @@
 {
     "name": "@ekolabs/eko-js-sdk",
-    "version": "0.0.14",
+    "version": "0.0.15",
     "description": "A lightweight SDK that allows for easy integration of eko videos into webpages.",
     "main": "dist/EkoPlayer.min.js",
     "license": "Apache-2.0",

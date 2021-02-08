@@ -1,6 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import ekoPlatform from '../ekoPlatform';
 import { stringifyQueryParams } from '../queryParamsUtils';
+import deepmerge from 'deepmerge';
 
 class EkoEmbedV2 {
     constructor(iframe) {
@@ -19,11 +20,13 @@ class EkoEmbedV2 {
 
 
     load(id, options) {
-        let embedParams = options.params || {};
-        embedParams.id = id;
-        embedParams.embedapi = '2.0';
-        embedParams.embedid = this.iframe.id;
-        embedParams.events = options.events.join(',');
+        let embedParams = {
+            id,
+            embedapi: '2.0',
+            embedid: this.iframe.id,
+            events: options.events.join(',')
+        };
+        embedParams = deepmerge.all([embedParams, options.params]);
 
         const clientSideParams = options.clientSideParams;
         if (clientSideParams && typeof clientSideParams === 'object') {
