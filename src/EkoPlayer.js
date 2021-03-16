@@ -243,6 +243,11 @@ class EkoPlayer {
         }
         /* eslint-enable new-cap */
 
+        // This is set by the we-sdk, if exists pass to the child frame
+        if (window.eko && window.eko.playerInstanceId) {
+            options.params.playerInstanceId = window.eko.playerInstanceId;
+        }
+
         const forwardParams = utils.omit(parseQueryParams(window.location.search), options.excludePropagatedParams);
         options.params = deepmerge.all([options.params, forwardParams]);
 
