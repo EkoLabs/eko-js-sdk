@@ -28,11 +28,21 @@ class EkoEmbedV2 {
         };
         embedParams = deepmerge.all([embedParams, options.params]);
 
-        const clientSideParams = options.clientSideParams;
-        if (clientSideParams && typeof clientSideParams === 'object') {
+        let clientSideParams = options.clientSideParams;
+        if (clientSideParams && (typeof clientSideParams === 'object' || typeof clientSideParams === 'function')) {
+            // Normalize clientSideParams - if it's an object, convert it into a function that returns that object
+            if (typeof clientSideParams === 'object') {
+                const cspObj = clientSideParams;
+                clientSideParams = () => cspObj;
+            }
+
             embedParams.csp = true;
             this.once('loader.csp.ready', () => {
-                this.iframe.contentWindow.postMessage({ target: 'loader', csp: clientSideParams }, '*');
+                Promise.resolve()
+                    .then(clientSideParams)
+                    .then((csp) => {
+                        this.iframe.contentWindow.postMessage({ target: 'loader', csp }, '*');
+                    });
             });
         }
 

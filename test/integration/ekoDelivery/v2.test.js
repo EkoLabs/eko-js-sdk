@@ -324,6 +324,69 @@ describe('ekoPlayer.load()', () => {
         expect(cspFound).toBeTruthy();
     });
 
+    it(`ekoPlayer.load(id, { clientSideParams: {key: 'value'}})
+    check that clientSideParams have been set correctly in iframe`, async() => {
+        const page = await browser.newPage();
+        await page.goto(`file://${__dirname}/../app.html`);
+        const CSP_OBJ = { key: 'value' };
+        const IFRAME_ID = 'EKO_EMBED';
+
+        // Init EkoPlayer
+        await page.evaluate((CSP_OBJ, IFRAME_ID) => { // eslint-disable-line no-shadow
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
+            ekoPlayer.load('zmb330', {
+                iframeAttributes: {
+                    id: IFRAME_ID
+                },
+                clientSideParams: CSP_OBJ
+            });
+        }, CSP_OBJ, IFRAME_ID);
+
+        await page.waitForTimeout(1000);
+        const projectFrame = await page.frames().find(f => f.name() === IFRAME_ID);
+
+        // Get CSP object from iframe
+        const cspObj = await projectFrame.evaluate(() => {
+            return window.eko.loaderCspPromise;
+        });
+        expect(cspObj).toEqual(CSP_OBJ);
+    });
+
+    it(`ekoPlayer.load(id, { clientSideParams: async () => {} })
+    check that async clientSideParams have been set correctly in iframe`, async() => {
+        const page = await browser.newPage();
+        await page.goto(`file://${__dirname}/../app.html`);
+        const CSP_OBJ = { coolio: 'ya' };
+        const IFRAME_ID = 'EKO_EMBED';
+
+        // Init EkoPlayer
+        await page.evaluate((CSP_OBJ, IFRAME_ID) => { // eslint-disable-line no-shadow
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
+            window.cspPromise = new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(CSP_OBJ);
+                }, 1000);
+            });
+            ekoPlayer.load('zmb330', {
+                iframeAttributes: {
+                    id: IFRAME_ID
+                },
+                clientSideParams: () => {
+                    return window.cspPromise;
+                }
+            });
+        }, CSP_OBJ, IFRAME_ID);
+
+        await page.waitForTimeout(1000);
+        const projectFrame = await page.frames().find(f => f.name() === IFRAME_ID);
+
+        // Get CSP object from iframe
+        const cspObj = await projectFrame.evaluate(() => {
+            return window.eko.loaderCspPromise;
+        });
+        expect(cspObj).toEqual(CSP_OBJ);
+    });
+
     it(`ekoPlayer.load(id, { params: { id: abcde, embedapi: 3.0 } })
     check options params override default values and id args `, async() => {
         const page = await browser.newPage();
