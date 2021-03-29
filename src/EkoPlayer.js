@@ -80,7 +80,8 @@ class EkoPlayer {
             invoke: this.invoke.bind(this),
             on: this.on.bind(this),
             once: this.once.bind(this),
-            off: this.off.bind(this)
+            off: this.off.bind(this),
+            dispose: this.dispose.bind(this)
         };
     }
 
@@ -210,6 +211,16 @@ class EkoPlayer {
      */
     once(eventName, callback) {
         this.ekoEmbed.once(eventName, callback);
+    }
+
+    /**
+     * Will dispose EkoPlayer instance.
+     *
+     * @memberof EkoPlayer
+     */
+    dispose() {
+        this.iframe.remove();
+        this.ekoEmbed.dispose();
     }
 
     ///////////////////////////
