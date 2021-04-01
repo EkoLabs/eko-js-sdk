@@ -112,7 +112,7 @@ Will dispose EkoPlayer instance
 **Example**
 
 ```javascript
-const ekoPlayer = new EkoPlayer('#myContainer', '1.0');
+const ekoPlayer = new EkoPlayer('#myContainer');
 ekoPlayer.dispose();
 ```
 

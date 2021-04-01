@@ -65,7 +65,7 @@ class EkoEmbedV1 {
     }
 
     dispose() {
-        window.removeEventListener('message', this.onEkoEventFired);
+        this.removeIframeListeners();
     }
 
     ///////////////////////////
@@ -74,6 +74,10 @@ class EkoEmbedV1 {
 
     addIframeListeners() {
         window.addEventListener('message', this.onEkoEventFired);
+    }
+
+    removeIframeListeners() {
+        window.removeEventListener('message', this.onEkoEventFired);
     }
 
     onEkoEventFired(event) {

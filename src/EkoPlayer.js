@@ -219,8 +219,16 @@ class EkoPlayer {
      * @memberof EkoPlayer
      */
     dispose() {
-        this.iframe.remove();
-        this.ekoEmbed.dispose();
+        if (this.iframe && typeof this.iframe.remove === 'function') {
+            this.iframe.remove();
+        }
+
+        if (this.ekoEmbed && typeof this.ekoEmbed.dispose === 'function') {
+            this.ekoEmbed.dispose();
+        }
+
+        this.iframe = null;
+        this.ekoEmbed = null;
     }
 
     ///////////////////////////

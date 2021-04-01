@@ -81,7 +81,7 @@ class EkoEmbedV2 {
     }
 
     dispose() {
-        window.removeEventListener('message', this.onEkoEventFired);
+        this.removeIframeListeners();
     }
 
     ///////////////////////////
@@ -89,6 +89,10 @@ class EkoEmbedV2 {
     //////////////////////////
     addIframeListeners() {
         window.addEventListener('message', this.onEkoEventFired);
+    }
+
+    removeIframeListeners() {
+        window.removeEventListener('message', this.onEkoEventFired);
     }
 
     onEkoEventFired(event) {
