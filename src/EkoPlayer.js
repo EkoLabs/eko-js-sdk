@@ -80,7 +80,8 @@ class EkoPlayer {
             invoke: this.invoke.bind(this),
             on: this.on.bind(this),
             once: this.once.bind(this),
-            off: this.off.bind(this)
+            off: this.off.bind(this),
+            dispose: this.dispose.bind(this)
         };
     }
 
@@ -210,6 +211,24 @@ class EkoPlayer {
      */
     once(eventName, callback) {
         this.ekoEmbed.once(eventName, callback);
+    }
+
+    /**
+     * Will dispose EkoPlayer instance.
+     *
+     * @memberof EkoPlayer
+     */
+    dispose() {
+        if (this.iframe && typeof this.iframe.remove === 'function') {
+            this.iframe.remove();
+        }
+
+        if (this.ekoEmbed && typeof this.ekoEmbed.dispose === 'function') {
+            this.ekoEmbed.dispose();
+        }
+
+        this.iframe = null;
+        this.ekoEmbed = null;
     }
 
     ///////////////////////////

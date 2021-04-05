@@ -105,6 +105,17 @@ The callbackFn will be invoked with the arguments passed by the triggered event.
 
 #### once(eventname, callbackFn)
 
+#### dispose()
+
+Will dispose EkoPlayer instance
+
+**Example**
+
+```javascript
+const ekoPlayer = new EkoPlayer('#myContainer');
+ekoPlayer.dispose();
+```
+
 # Default Player Events
 
 #### canplay

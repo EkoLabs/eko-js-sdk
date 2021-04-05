@@ -7,6 +7,7 @@ class EkoEmbedV2 {
     constructor(iframe) {
         this.iframe = iframe;
         this.eventEmitter = new EventEmitter();
+        this.onEkoEventFired = this.onEkoEventFired.bind(this);
         this.addIframeListeners();
 
         return {
@@ -14,7 +15,8 @@ class EkoEmbedV2 {
             invoke: this.invoke.bind(this),
             on: this.on.bind(this),
             off: this.off.bind(this),
-            once: this.once.bind(this)
+            once: this.once.bind(this),
+            dispose: this.dispose.bind(this)
         };
     }
 
@@ -78,11 +80,19 @@ class EkoEmbedV2 {
         this.eventEmitter.once(eventName, callback);
     }
 
+    dispose() {
+        this.removeIframeListeners();
+    }
+
     ///////////////////////////
     // PRIVATE FUNCTIONS
     //////////////////////////
     addIframeListeners() {
-        window.addEventListener('message', this.onEkoEventFired.bind(this));
+        window.addEventListener('message', this.onEkoEventFired);
+    }
+
+    removeIframeListeners() {
+        window.removeEventListener('message', this.onEkoEventFired);
     }
 
     onEkoEventFired(event) {
