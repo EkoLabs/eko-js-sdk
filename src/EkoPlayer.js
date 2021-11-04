@@ -104,7 +104,7 @@ class EkoPlayer {
     /**
      * Will load and display an eko project.
      *
-     * @param {string} id - id of the project to load
+     * @param {string} id - id of the eko content, a studio project or a blueprint instance, to load
      * @param {object} [options] - loading options
      * @param {object} [options.params] - A list of embed params that will affect the delivery. Default includes {autoplay: true}.
      * @param {string[]} [options.events] - A list of events that should be forwarded to the app.
