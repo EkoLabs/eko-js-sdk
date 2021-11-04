@@ -2,6 +2,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable no-magic-numbers */
 const puppeteer = require('puppeteer');
+const testingInstanceId = 'IlA4fs022o';
 
 let browser;
 beforeAll(async() => {
@@ -22,13 +23,13 @@ describe('ekoPlayer.load()', () => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
-        await page.evaluate(() => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 iframeAttributes: { id: 'testFrame' },
                 params: { autoplay: true }
             });
-        });
+        }, testingInstanceId);
 
         // Check autoplay
         const autoplayValue = await page.evaluate(() => {
@@ -46,13 +47,13 @@ describe('ekoPlayer.load()', () => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
-        await page.evaluate(() => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 iframeAttributes: { id: 'testFrame' },
                 params: { autoplay: false }
             });
-        });
+        }, testingInstanceId);
 
         // Check autoplay
         const autoplayValue = await page.evaluate(() => {
@@ -75,9 +76,9 @@ describe('ekoPlayer.load()', () => {
         const iframeName = 'testName';
         const iframeTitle = 'testTitle';
         const iframeReferrerpolicy = 'no-referrer';
-        await page.evaluate((id, name, title, refPollicy) => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((id, name, title, refPollicy, instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 iframeAttributes: {
                     id: id,
                     name: name,
@@ -85,7 +86,7 @@ describe('ekoPlayer.load()', () => {
                     referrerpolicy: refPollicy
                 }
             });
-        }, iframeId, iframeName, iframeTitle, iframeReferrerpolicy);
+        }, iframeId, iframeName, iframeTitle, iframeReferrerpolicy, testingInstanceId);
 
         // Check iframe attributes
         const id = await page.evaluate(() => {
@@ -115,10 +116,11 @@ describe('ekoPlayer.load()', () => {
         await page.goto(`file://${__dirname}/../app.html?${passQueryParamKeys[0]}=${passQueryParamValues[0]}&${passQueryParamKeys[1]}=${passQueryParamValues[1]}`);
 
         // Init EkoPlayer
-        await page.evaluate(() => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330');
-        }, passQueryParamKeys);
+        // eslint-disable-next-line no-shadow
+        await page.evaluate((passQueryParamKeys, instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId);
+        }, passQueryParamKeys, testingInstanceId);
 
         // Check pageParam1
         const pageParam1ValueFromIframe = await page.evaluate(() => {
@@ -144,12 +146,12 @@ describe('ekoPlayer.load()', () => {
         await page.goto(`file://${__dirname}/../app.html?autoplay=false`);
 
         // Init EkoPlayer
-        await page.evaluate(() => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 params: { autoplay: true }
             });
-        });
+        }, testingInstanceId);
 
         // Get autoplay query string value
         const autoplayValue = await page.evaluate(() => {
@@ -167,13 +169,13 @@ describe('ekoPlayer.load()', () => {
         await page.goto(`file://${__dirname}/../app.html?autoplay=false&coolio=yay`);
 
         // Init EkoPlayer
-        await page.evaluate(() => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '1.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 params: { autoplay: true },
                 excludePropagatedParams: ['autoplay']
             });
-        });
+        }, testingInstanceId);
 
         // Get autoplay query string value
         const getQueryParamValue = (key) => {
@@ -195,12 +197,12 @@ describe('ekoPlayer.load()', () => {
         const events = ['nodestart', 'nodeend', 'playing', 'pause'];
 
         // Init EkoPlayer
-        await page.evaluate((iframeEvents) => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((iframeEvents, instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 events: iframeEvents
             });
-        }, events);
+        }, events, testingInstanceId);
 
         // Get events query string value
         const eventsValue = await page.evaluate(() => {
@@ -220,13 +222,13 @@ describe('ekoPlayer.load()', () => {
         await page.goto(`file://${__dirname}/../appWithDomCover.html`);
 
         // Init EkoPlayer
-        await page.evaluate(() => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 params: { autoplay: false },
                 cover: '#domCoverTest'
             });
-        });
+        }, testingInstanceId);
 
         await page.waitForTimeout(4000);
 
@@ -248,13 +250,15 @@ describe('ekoPlayer.load()', () => {
         await page.goto(`file://${__dirname}/../appWithDomCover.html`);
 
         // Init EkoPlayer
-        await page.evaluate(() => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
-                params: { autoplay: true },
+        await page.evaluate((instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
+                params: {
+                    autoplay: true
+                },
                 cover: '#domCoverTest'
             });
-        });
+        }, testingInstanceId);
 
         await page.waitForTimeout(8000);
 
@@ -273,20 +277,20 @@ describe('ekoPlayer.load()', () => {
         await page.goto(`file://${__dirname}/../app.html`);
 
         // Init EkoPlayer
-        await page.evaluate(() => {
+        await page.evaluate((instanceId) => {
             window.coverStatesChanged = {
                 loading: false,
                 loaded: false,
                 started: false
             };
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 params: { autoplay: true },
                 cover: function(state) {
                     window.coverStatesChanged[state] = true;
                 }
             });
-        });
+        }, testingInstanceId);
 
         await page.waitForTimeout(8000);
 
@@ -306,12 +310,12 @@ describe('ekoPlayer.load()', () => {
         await page.goto(`file://${__dirname}/../app.html`);
 
         // Init EkoPlayer
-        await page.evaluate(() => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 clientSideParams: { key: 'value' }
             });
-        });
+        }, testingInstanceId);
 
         // Get csp query string value
         const cspFound = await page.evaluate(() => {
@@ -330,15 +334,15 @@ describe('ekoPlayer.load()', () => {
         const IFRAME_ID = 'EKO_EMBED';
 
         // Init EkoPlayer
-        await page.evaluate((CSP_OBJ, IFRAME_ID) => { // eslint-disable-line no-shadow
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((CSP_OBJ, IFRAME_ID, instanceId) => { // eslint-disable-line no-shadow
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 iframeAttributes: {
                     id: IFRAME_ID
                 },
                 clientSideParams: CSP_OBJ
             });
-        }, CSP_OBJ, IFRAME_ID);
+        }, CSP_OBJ, IFRAME_ID, testingInstanceId);
 
         await page.waitForTimeout(1000);
         const projectFrame = await page.frames().find(f => f.name() === IFRAME_ID);
@@ -358,14 +362,14 @@ describe('ekoPlayer.load()', () => {
         const IFRAME_ID = 'EKO_EMBED';
 
         // Init EkoPlayer
-        await page.evaluate((CSP_OBJ, IFRAME_ID) => { // eslint-disable-line no-shadow
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
+        await page.evaluate((CSP_OBJ, IFRAME_ID, instanceId) => { // eslint-disable-line no-shadow
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
             window.cspPromise = new Promise(resolve => {
                 setTimeout(() => {
                     resolve(CSP_OBJ);
                 }, 1000);
             });
-            ekoPlayer.load('zmb330', {
+            ekoPlayer.load(instanceId, {
                 iframeAttributes: {
                     id: IFRAME_ID
                 },
@@ -373,7 +377,7 @@ describe('ekoPlayer.load()', () => {
                     return window.cspPromise;
                 }
             });
-        }, CSP_OBJ, IFRAME_ID);
+        }, CSP_OBJ, IFRAME_ID, testingInstanceId);
 
         await page.waitForTimeout(1000);
         const projectFrame = await page.frames().find(f => f.name() === IFRAME_ID);
@@ -394,15 +398,15 @@ describe('ekoPlayer.load()', () => {
         const overrideEmbedapi = '2.1';
 
         // Init EkoPlayer
-        await page.evaluate((id, api) => {
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
-            ekoPlayer.load('zmb330', {
+        await page.evaluate((id, api, instanceId) => {
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
+            ekoPlayer.load(instanceId, {
                 params: {
                     id: id,
                     embedapi: api
                 }
             });
-        }, overrideId, overrideEmbedapi);
+        }, overrideId, overrideEmbedapi, testingInstanceId);
 
         // Get id query string value
         const idValue = await page.evaluate(() => {
@@ -424,16 +428,16 @@ describe('ekoPlayer.load()', () => {
 });
 
 describe('ekoPlayer.on()', () => {
-    it(`ekoplayer.on('nodestart', callback) 
+    it(`ekoplayer.on('nodestart', callback)
         check if nodestart callback fired`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
-        await page.evaluate(() => {
+        await page.evaluate((instanceId) => {
             window.onNodeStartCallBack = false;
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
 
-            ekoPlayer.load('zmb330', {
+            ekoPlayer.load(instanceId, {
                 iframeAttributes: { id: 'testFrame' },
                 events: ['nodestart'],
                 params: { autoplay: true }
@@ -442,7 +446,7 @@ describe('ekoPlayer.on()', () => {
             ekoPlayer.on('nodestart', () => {
                 window.onNodeStartCallBack = true;
             });
-        });
+        }, testingInstanceId);
         await page.waitForTimeout(8000);
 
         const nodeStartCallbackCalled = await page.evaluate(() => {
@@ -452,17 +456,17 @@ describe('ekoPlayer.on()', () => {
         expect(nodeStartCallbackCalled).toBeTrue();
     });
 
-    it(`ekoplayer.on('customTestEvent', callback) 
+    it(`ekoplayer.on('customTestEvent', callback)
     check if on customTestEvent callback fired & callback args are separtiated`, async() => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
-        await page.evaluate(() => {
+        await page.evaluate((instanceId) => {
             window.customEventArg1 = false;
             window.customEventArg2 = false;
-            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '2.0');
+            let ekoPlayer =  new EkoPlayer('#ekoPlayerEl', '3.0');
 
-            ekoPlayer.load('zmb330', {
+            ekoPlayer.load(instanceId, {
                 iframeAttributes: { id: 'testFrame' },
                 events: ['customTestEvent']
             });
@@ -471,7 +475,7 @@ describe('ekoPlayer.on()', () => {
                 window.customEventArg1 = arg1;
                 window.customEventArg2 = arg2;
             });
-        });
+        }, testingInstanceId);
 
         await page.waitForTimeout(8000);
         let projectFrame = page.frames().find(f => f.name() === 'testFrame');
@@ -497,14 +501,14 @@ describe('ekoPlayer.invoke()', () => {
         const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
-        await page.evaluate(() => {
-            window.ekoPlayer = new EkoPlayer('#ekoPlayerEl', '2.0');
+        await page.evaluate((instanceId) => {
+            window.ekoPlayer = new EkoPlayer('#ekoPlayerEl', '3.0');
 
-            window.ekoPlayer.load('zmb330', {
+            window.ekoPlayer.load(instanceId, {
                 iframeAttributes: { id: 'testFrame' },
                 params: { autoplay: true }
             });
-        });
+        }, testingInstanceId);
         await page.waitForTimeout(8000);
 
         await page.evaluate(() => {
