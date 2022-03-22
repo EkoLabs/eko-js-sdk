@@ -2,7 +2,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable no-magic-numbers */
 const puppeteer = require('puppeteer');
-const testingInstanceId = 'IlA4fs022o';
+const testingInstanceId = '42rvvp6tpn';
 
 let browser;
 beforeAll(async() => {

@@ -22,6 +22,10 @@ class EkoEmbedDeliveryBase {
         };
     }
 
+    getDeliveryUrl(embedParams, options) {
+        const host = options.host ? `${options.host}` : `${options.env || ''}embed.eko.com`;
+        return `https://${host}${this.embedpath}?${stringifyQueryParams(embedParams)}`;
+    }
 
     load(id, options) {
         let embedParams = {
@@ -53,7 +57,7 @@ class EkoEmbedDeliveryBase {
         // Finally, let's set the iframe's src to begin loading the project
         this.iframe.setAttribute(
             'src',
-            `https://${options.env || ''}embed.eko.com${this.embedpath}?${stringifyQueryParams(embedParams)}`
+            this.getDeliveryUrl(embedParams, options)
         );
     }
 
@@ -70,6 +74,7 @@ class EkoEmbedDeliveryBase {
 
         this.iframe.contentWindow.postMessage(action, '*');
     }
+
     on(eventName, callback) {
         this.eventEmitter.on(eventName, callback);
     }
