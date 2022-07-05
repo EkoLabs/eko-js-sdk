@@ -4,8 +4,8 @@ import { stringifyQueryParams } from '../queryParamsUtils';
 import deepmerge from 'deepmerge';
 
 class EkoEmbedDeliveryBase {
-    constructor(serivepath, embedapi, embedpath, iframe) {
-        this.serivepath = serivepath;
+    constructor(servicepath, embedapi, embedpath, iframe) {
+        this.servicepath = servicepath;
         this.embedapi = embedapi || '2.0';
         this.embedpath = embedpath || '/';
         this.iframe = iframe;
@@ -24,7 +24,7 @@ class EkoEmbedDeliveryBase {
     }
 
     getDeliveryUrl(embedParams, options) {
-        const host = options.host ? `${options.host}` : `${options.env || ''}${this.serivepath}`;
+        const host = options.host ? `${options.host}` : `${options.env || ''}${this.servicepath}`;
         return `https://${host}${this.embedpath}?${stringifyQueryParams(embedParams)}`;
     }
 
