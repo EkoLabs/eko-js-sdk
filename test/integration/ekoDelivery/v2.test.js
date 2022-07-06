@@ -52,8 +52,8 @@ describe('ekoPlayer.load()', () => {
             ekoPlayer.load(_testingProjectId, {
                 iframeAttributes: { id: 'testFrame' },
                 params: { autoplay: false }
-            }, testingProjectId);
-        });
+            });
+        }, testingProjectId);
 
         // Check autoplay
         const autoplayValue = await page.evaluate(() => {
