@@ -15,7 +15,7 @@
         "build:production": "webpack --config webpack.prod.js",
         "prepare": "npm run build:production",
         "start-dev": "webpack-dev-server --https",
-        "test": "jest --maxWorkers=1"
+        "test": "jest"
     },
     "devDependencies": {
         "@babel/cli": "^7.11.6",
