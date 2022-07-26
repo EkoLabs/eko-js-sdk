@@ -16,11 +16,19 @@ afterAll(async() => {
     await browser.close();
 }, 15000);
 
-jest.setTimeout(999999);
+jest.setTimeout(120000);
 describe('ekoPlayer.load()', () => {
+    let page;
+    beforeEach(async() => {
+        page = await browser.newPage();
+    });
+
+    afterEach(() => {
+        return page.close();
+    });
+
     it(`ekoPlayer.load(id, { autoplay: true }))
         check if autoplay set to true in query string`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate((_testingProjectId) => {
@@ -44,7 +52,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id, { autoplay: false }))
     check if autoplay set to false in query string`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate((_testingProjectId) => {
@@ -68,7 +75,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id, { iframeAttributes: {title: iframeTitle, ...}})
         check if iframeAttributes is the iframe attributes`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         // Init EkoPlayer
@@ -110,7 +116,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id)
     check if pageParam1 & pageParam2 pass to iframe query string with correct values`, async() => {
-        const page = await browser.newPage();
         const passQueryParamsKeys = ['pageParam1', 'pageParam2'];
         const passQueryParamsValues = ['1', '2'];
         await page.goto(`file://${__dirname}/../app.html?${passQueryParamsKeys[0]}=${passQueryParamsValues[0]}&${passQueryParamsKeys[1]}=${passQueryParamsValues[1]}`);
@@ -141,7 +146,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id, { params: { autoplay: true } })
     check that autoplay query paras override autoplay params value as iframe queryString `, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html?autoplay=false`);
 
         // Init EkoPlayer
@@ -164,7 +168,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id, { excludePropagatedParams: ['autoplay'] })
     check that autoplay query param is not being forwarded to iframe `, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html?autoplay=false&coolio=yay`);
 
         // Init EkoPlayer
@@ -193,7 +196,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id, { events: ['nodestart', 'nodeend', 'playing', 'pause']})
     check that events is part of iframe query string `, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
         const events = ['nodestart', 'nodeend', 'playing', 'pause'];
 
@@ -219,7 +221,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id, { cover: DomCover, autoplay: false})
     check domCover autoplay false -> domCover class: eko-player-loaded`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../appWithDomCover.html`);
 
         // Init EkoPlayer
@@ -247,7 +248,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id, { cover: DomCover, autoplay: true})
     check domCover autoplay true -> domCover class: eko-player-started`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../appWithDomCover.html`);
 
         // Init EkoPlayer
@@ -272,7 +272,6 @@ describe('ekoPlayer.load()', () => {
 
     it(`ekoPlayer.load(id, { cover: callbackCover, autoplay: true})
     check callbackCover called for each state`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         // Init EkoPlayer
@@ -305,9 +304,17 @@ describe('ekoPlayer.load()', () => {
 });
 
 describe('ekoPlayer.on()', () => {
+    let page;
+    beforeEach(async() => {
+        page = await browser.newPage();
+    });
+
+    afterEach(() => {
+        return page.close();
+    });
+
     it(`ekoplayer.on('nodestart', callback) 
         check if nodestart callback fired`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate((_testingProjectId) => {
@@ -335,7 +342,6 @@ describe('ekoPlayer.on()', () => {
 
     it(`ekoplayer.on('customTestEvent', callback) 
         check if on customTestEvent callback fired & callback args are separtiated`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate((_testingProjectId) => {
@@ -374,8 +380,16 @@ describe('ekoPlayer.on()', () => {
 });
 
 describe('ekoPlayer.invoke()', () => {
+    let page;
+    beforeEach(async() => {
+        page = await browser.newPage();
+    });
+
+    afterEach(() => {
+        return page.close();
+    });
+
     it(`ekoplayer.invoke('pause')`, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate((_testingProjectId) => {

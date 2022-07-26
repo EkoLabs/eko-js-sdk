@@ -16,12 +16,20 @@ afterAll(async() => {
     await browser.close();
 }, 15000);
 
-jest.setTimeout(999999);
+jest.setTimeout(120000);
 
 describe('ekoPlayer.load()', () => {
+    let page;
+    beforeEach(async() => {
+        page = await browser.newPage();
+    });
+
+    afterEach(() => {
+        return page.close();
+    });
+
     it(`ekoPlayer.load(id, { host: 'directembed.eko.com' }))
     check host override `, async() => {
-        const page = await browser.newPage();
         await page.goto(`file://${__dirname}/../app.html`);
 
         await page.evaluate((instanceId) => {
