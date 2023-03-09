@@ -3,6 +3,9 @@ import ekoPlatform from '../ekoPlatform';
 import { stringifyQueryParams } from '../queryParamsUtils';
 import deepmerge from 'deepmerge';
 
+const MSG_FROM_IDENTIFIER = 'eko.js-sdk';
+const CHILD_EMBED_API_IDENTIFIER = 'eko.embedapi';
+
 class EkoEmbedDeliveryBase {
     constructor(servicepath, embedapi, embedpath, iframe) {
         this.servicepath = servicepath;
@@ -16,6 +19,7 @@ class EkoEmbedDeliveryBase {
         return {
             load: this.load.bind(this),
             invoke: this.invoke.bind(this),
+            sendMsg: this.sendMsg.bind(this),
             on: this.on.bind(this),
             off: this.off.bind(this),
             once: this.once.bind(this),
@@ -76,6 +80,18 @@ class EkoEmbedDeliveryBase {
         this.iframe.contentWindow.postMessage(action, '*');
     }
 
+    sendMsg(type, data) {
+        let msg = {
+            from: MSG_FROM_IDENTIFIER,
+            to: CHILD_EMBED_API_IDENTIFIER,
+
+            type,
+            data
+        };
+
+        this.iframe.contentWindow.postMessage(msg, '*');
+    }
+
     on(eventName, callback) {
         this.eventEmitter.on(eventName, callback);
     }
@@ -104,18 +120,22 @@ class EkoEmbedDeliveryBase {
     }
 
     onEkoEventFired(event) {
-        if (!ekoPlatform.isEkoDomain(event.origin)) {
+        // MY TODO: ok to add localhost always?
+        if (!ekoPlatform.isEkoDomain(event.origin) && event.origin !== 'http://localhost:5023') {
             return;
         }
 
         const msg = event.data;
 
-        // Do nothing if this message was not intended for us
-        if (!msg.event || msg.embedid !== this.iframe.id || msg.embedapi !== this.embedapi) {
-            return;
+        // MY TODO: comment - only handle messages that intended for us
+        // MY TODO: v2 - from => eko.embedapi
+        // MY TODO: v1 - msg.event exists
+        // eslint-disable-next-line max-len
+        if (msg.from === CHILD_EMBED_API_IDENTIFIER && msg.embedId === this.iframe.id && msg.embedApiVersion === this.embedapi) {
+            this.eventEmitter.emit(msg.type, msg);
+        } else if (msg.event && msg.embedid === this.iframe.id && msg.embedapi === this.embedapi) {
+            this.eventEmitter.emit(msg.event, ...msg.args);
         }
-
-        this.eventEmitter.emit(msg.event, ...msg.args);
     }
 }
 

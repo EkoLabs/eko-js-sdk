@@ -78,6 +78,7 @@ class EkoPlayer {
             pause: this.pause.bind(this),
             load: this.load.bind(this),
             invoke: this.invoke.bind(this),
+            sendMsg: this.sendMsg.bind(this),
             on: this.on.bind(this),
             once: this.once.bind(this),
             off: this.off.bind(this),
@@ -174,6 +175,11 @@ class EkoPlayer {
      */
     invoke(method, ...args) {
         this.ekoEmbed.invoke(method, args);
+    }
+
+    // MY TODO: comment...
+    sendMsg(type, data) {
+        this.ekoEmbed.sendMsg(type, data);
     }
 
     /**

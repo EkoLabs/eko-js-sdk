@@ -16,7 +16,10 @@ class EkoEmbedV1 {
             on: this.on.bind(this),
             off: this.off.bind(this),
             once: this.once.bind(this),
-            dispose: this.dispose.bind(this)
+            dispose: this.dispose.bind(this),
+
+            // eslint-disable-next-line no-console
+            sendMsg: () => { console.warn('"sendMsg()" method is not implemented for v1'); }, // MY TODO: review...
         };
     }
 
